@@ -1,6 +1,8 @@
-﻿namespace UniversalLoyaltySystem.LoyaltySystem.API.Infrastructure.Authorization
+﻿namespace LoyaltySystem.API.Infrastructure.Authorization
 {
-    public class LoyaltyPolicies
+    public static class LoyaltyPolicies
     {
+        public const string TierGold = "TierGold";
+        public const string CanRedeemPoints = "CanRedeemPoints";
     }
 }

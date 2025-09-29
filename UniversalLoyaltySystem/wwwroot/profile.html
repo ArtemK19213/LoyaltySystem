@@ -142,17 +142,20 @@
             }
         });
 
-        function displayUserInfo(userData) {
-            const userInfoDiv = document.getElementById('userInfo');
-            userInfoDiv.innerHTML = `
-                    <div class="info-item"><strong>ID:</strong> ${userData.UserId || 'N/A'}</div>
-                    <div class="info-item"><strong>Email:</strong> ${userData.Email || 'N/A'}</div>
-                    <div class="info-item"><strong>Телефон:</strong> ${userData.Phone || 'N/A'}</div>
-                    <div class="info-item"><strong>Баллы:</strong> ${userData.Points || '0'}</div>
-                    <div class="info-item"><strong>Уровень:</strong> ${userData.Tier || 'Basic'}</div>
-                    <div class="info-item"><strong>Роли:</strong> ${userData.Roles ? userData.Roles.join(', ') : 'N/A'}</div>
-                `;
-        }
+
+            function displayUserInfo(userData) {
+                const userInfoDiv = document.getElementById('userInfo');
+                userInfoDiv.innerHTML = `
+                        <div class="info-item"><strong>ID:</strong> ${userData.userId || 'N/A'}</div>
+                        <div class="info-item"><strong>Email:</strong> ${userData.email || 'N/A'}</div>
+                        <div class="info-item"><strong>Телефон:</strong> ${userData.phone || 'N/A'}</div>
+                        <div class="info-item"><strong>Баллы:</strong> ${userData.points ?? '0'}</div>
+                        <div class="info-item"><strong>Уровень:</strong> ${userData.tier || 'Basic'}</div>
+                        <div class="info-item"><strong>Роли:</strong> ${Array.isArray(userData.roles) ? userData.roles.join(', ') : 'N/A'}</div>
+      `              ;
+            }
+
+
 
         function logout() {
             console.log('Logging out...');

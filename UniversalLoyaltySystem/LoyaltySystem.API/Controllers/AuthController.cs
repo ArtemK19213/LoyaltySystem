@@ -2,61 +2,46 @@
 using LoyaltySystem.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LoyaltySystem.API.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+namespace LoyaltySystem.API.Controllers
 {
-    private readonly ILoyaltyAuthService _authService;
-
-    public AuthController(ILoyaltyAuthService authService)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
     {
-        _authService = authService;
-    }
+        private readonly ILoyaltyAuthService _auth;
+        public AuthController(ILoyaltyAuthService auth) => _auth = auth;
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
-    {
-        var result = await _authService.LoginAsync(request.Login, request.Password);
 
-        if (!result.Success)
-            return Unauthorized(new { result.Error });
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest req)
+        {
+            var result = await _auth.LoginAsync(req.Login, req.Password);
+            if (!result.Success) return Unauthorized(new { message = result.Error });
+            return Ok(new { accessToken = result.Tokens!.AccessToken, refreshToken = result.Tokens!.RefreshToken });
+        }
 
-        return Ok(result.Tokens);
-    }
 
-    [HttpPost("phone-login")]
-    public async Task<IActionResult> PhoneLogin([FromBody] PhoneLoginRequest request)
-    {
-        var result = await _authService.LoginWithPhoneAsync(request.Phone, request.Code);
+        [HttpPost("phone-login")]
+        public async Task<IActionResult> PhoneLogin([FromBody] PhoneLoginRequest req)
+        {
+            var result = await _auth.LoginWithPhoneAsync(req.Phone, req.Code);
+            if (!result.Success) return Unauthorized(new { message = result.Error });
+            return Ok(new { accessToken = result.Tokens!.AccessToken, refreshToken = result.Tokens!.RefreshToken });
+        }
 
-        if (!result.Success)
-            return Unauthorized(new { result.Error });
 
-        return Ok(result.Tokens);
-    }
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshRequest req)
+        {
+            var result = await _auth.RefreshTokenAsync(req.RefreshToken);
+            if (!result.Success) return Unauthorized(new { message = result.Error });
+            return Ok(new { accessToken = result.Tokens!.AccessToken, refreshToken = result.Tokens!.RefreshToken });
+        }
 
-    [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
-    {
-        var result = await _authService.RefreshTokenAsync(request.RefreshToken);
 
-        if (!result.Success)
-            return Unauthorized(new { result.Error });
-
-        return Ok(result.Tokens);
-    }
-    [HttpPost("send-code")]
-    public async Task<IActionResult> SendCode([FromBody] SendCodeRequest request)
-    {
-        // Для демо - всегда возвращаем успех
-        return Ok(new { Message = "Код отправлен (демо: используйте 1234)" });
-    }
-
-    public class SendCodeRequest
-    {
-        public string Phone { get; set; } = string.Empty;
+        // Для демо-отправки кода — всегда ОК
+        [HttpPost("send-code")]
+        public IActionResult SendCode([FromBody] dynamic body) => Ok(new { message = "Код отправлен (демо: 1234)" });
     }
 }
-

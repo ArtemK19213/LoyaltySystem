@@ -1,69 +1,55 @@
-﻿using LoyaltySystem.API.Infrastructure.Authorization;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using LoyaltySystem.API.Infrastructure.Authorization;
 
-namespace LoyaltySystem.API.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
-public class LoyaltyController : ControllerBase
+namespace LoyaltySystem.API.Controllers
 {
-    [HttpGet("balance")]
-    [Authorize(Roles = LoyaltyRoles.Client)]
-    public IActionResult GetBalance()
+    [ApiController]
+    [Route("api/[controller]")]
+    public class LoyaltyController : ControllerBase
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var points = User.FindFirst("Points")?.Value;
-        var tier = User.FindFirst("Tier")?.Value;
-
-        return Ok(new
+        [Authorize]
+        [HttpGet("profile")]
+        public IActionResult Profile()
         {
-            UserId = userId,
-            Points = points,
-            Tier = tier,
-            Message = "Баланс получен успешно"
-        });
-    }
+            var user = HttpContext.User;
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            var email = user.FindFirstValue(ClaimTypes.Email);
+            var phone = user.FindFirstValue(ClaimTypes.MobilePhone);
+            var tier = user.FindFirst("Tier")?.Value ?? "Basic";
+            var points = user.FindFirst("Points")?.Value ?? "0";
+            var roles = user.FindAll(ClaimTypes.Role).Select(r => r.Value).ToArray();
 
-    [HttpGet("admin/dashboard")]
-    [Authorize(Roles = LoyaltyRoles.Admin)]
-    public IActionResult AdminDashboard()
-    {
-        return Ok(new { Message = "Добро пожаловать в админ панель!" });
-    }
-
-    [HttpGet("profile")]
-    [Authorize]
-    public IActionResult GetUserProfile()
-    {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            var points = User.FindFirst("Points")?.Value;
-            var tier = User.FindFirst("Tier")?.Value;
-            var phone = User.FindFirst(ClaimTypes.MobilePhone)?.Value;
-
-            var roles = User.Claims
-                .Where(c => c.Type == ClaimTypes.Role)
-                .SelectMany(c => c.Value.Split(','))
-                .ToList();
 
             return Ok(new
             {
                 UserId = userId,
                 Email = email,
                 Phone = phone,
-                Points = points,
                 Tier = tier,
+                Points = points,
                 Roles = roles
             });
         }
-        catch (Exception ex)
+
+
+        [Authorize]
+        [HttpGet("balance")]
+        public IActionResult Balance()
         {
-            return StatusCode(500, new { Error = "Internal server error", Details = ex.Message });
+            var points = HttpContext.User.FindFirst("Points")?.Value ?? "0";
+            return Ok(new { points });
+        }
+
+
+        // Пример защищённого эндпоинта для админов
+        [Authorize(Roles = LoyaltyRoles.Admin)]
+        [HttpGet("admin/dashboard")]
+        public IActionResult AdminDashboard()
+        {
+            return Ok(new { message = "Admin only dashboard" });
         }
     }
 }

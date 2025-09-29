@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Мои карты — Система лояльности</title>
+    <link rel="stylesheet" href="/cards.css" />
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <div class="logo">★</div>
+            <div class="title">
+                <h1>Мои карты</h1>
+                <p>Управляй балансом быстро и красиво</p>
+            </div>
+        </div>
+        <nav class="nav">
+            <a class="link" href="/profile">Профиль</a>
+            <button id="logoutBtn" class="btn ghost">Выйти</button>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="panel grid">
+            <div class="card big">
+                <div class="card-header">
+                    <h2>Карты</h2>
+                    <button id="createCardBtn" class="btn primary">
+                        + Создать карту
+                    </button>
+                </div>
+
+                <div id="cardsEmpty" class="empty hidden">
+                    <div class="empty-icon">💳</div>
+                    <div class="empty-title">Пока нет карт</div>
+                    <div class="empty-subtitle">Нажми «Создать карту», и начнём!</div>
+                </div>
+
+                <div id="cardsList" class="cards"></div>
+            </div>
+
+            <div class="card">
+                <h3>Начисление баллов</h3>
+                <form id="earnForm" class="form">
+                    <label class="field">
+                        <span>Номер карты</span>
+                        <input id="earnCard" placeholder="вставь номер карты" required />
+                    </label>
+                    <label class="field">
+                        <span>Сумма покупки (₽)</span>
+                        <input id="earnAmount" type="number" step="0.01" min="0" placeholder="например 500" required />
+                    </label>
+                    <button type="submit" class="btn success">Начислить</button>
+                </form>
+                <p class="hint">Правило MVP: <strong>1 балл</strong> за каждые <strong>10 ₽</strong>.</p>
+            </div>
+
+            <div class="card">
+                <h3>Списание баллов</h3>
+                <form id="redeemForm" class="form">
+                    <label class="field">
+                        <span>Номер карты</span>
+                        <input id="redeemCard" placeholder="вставь номер карты" required />
+                    </label>
+                    <label class="field">
+                        <span>Баллы к списанию</span>
+                        <input id="redeemPoints" type="number" min="1" step="1" placeholder="например 20" required />
+                    </label>
+                    <button type="submit" class="btn danger">Списать</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+    <div id="overlay" class="overlay hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <script src="/cards.js"></script>
+</body>
+</html>

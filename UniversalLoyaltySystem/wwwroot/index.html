@@ -274,7 +274,7 @@
                     // Сохраняем токен и перенаправляем
                     localStorage.setItem('accessToken', data.accessToken);
                     localStorage.setItem('refreshToken', data.refreshToken);
-                    window.location.href = '/dashboard';
+                    window.location.href = '/profile';
                 } else {
                     const error = await response.json();
                     showError(errorDiv, error.message || 'Ошибка авторизации');
