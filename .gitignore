@@ -1,0 +1,18 @@
+# Visual Studio
+.vs/
+*.vsidx
+*.suo
+*.user
+*.rsuser
+
+# .NET сборки и мусор
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+TestResult*/
+*.trx
+
+# Rider / VS Code (по желанию)
+.idea/
+*.iml
+.vscode/

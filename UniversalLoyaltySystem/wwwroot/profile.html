@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - Система Лояльности</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .profile-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #4f46e5;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .user-info {
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #4f46e5;
+        }
+
+            .info-item strong {
+                color: #4f46e5;
+                display: inline-block;
+                width: 120px;
+            }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #ef4444;
+            color: white;
+            display: block;
+            margin: 0 auto;
+            width: 200px;
+        }
+
+            .btn:hover {
+                background: #dc2626;
+            }
+
+        .loading {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .error {
+            color: #ef4444;
+            text-align: center;
+            padding: 15px;
+            background: #fef2f2;
+            border-radius: 8px;
+            border: 1px solid #fecaca;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <h1>Профиль пользователя</h1>
+
+        <div class="user-info" id="userInfo">
+            <p class="loading">Загрузка информации...</p>
+        </div>
+
+        <button class="btn" onclick="logout()">Выйти</button>
+    </div>
+
+    <script>
+        // Получаем базовый URL динамически
+        const API_BASE_URL = window.location.origin + '/api';
+
+        // Проверяем аутентификацию при загрузке
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('accessToken');
+            console.log('Token from localStorage:', token ? 'exists' : 'missing');
+
+            if (!token) {
+                console.log('No token found, redirecting to login');
+                window.location.href = window.location.origin + '/login';
+                return;
+            }
+
+            try {
+                console.log('Fetching user profile...');
+
+                const response = await fetch(`${API_BASE_URL}/loyalty/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('Response status:', response.status);
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    console.log('User data received:', userData);
+                    displayUserInfo(userData);
+                } else if (response.status === 401) {
+                    // Токен невалидный
+                    console.log('Token invalid, clearing storage and redirecting');
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    window.location.href = window.location.origin + '/login';
+                } else {
+                    throw new Error(`HTTP error: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                document.getElementById('userInfo').innerHTML = `
+                        <div class="error">
+                            <p>Ошибка загрузки профиля: ${error.message}</p>
+                            <p>Проверьте консоль для подробностей</p>
+                        </div>
+                    `;
+            }
+        });
+
+        function displayUserInfo(userData) {
+            const userInfoDiv = document.getElementById('userInfo');
+            userInfoDiv.innerHTML = `
+                    <div class="info-item"><strong>ID:</strong> ${userData.UserId || 'N/A'}</div>
+                    <div class="info-item"><strong>Email:</strong> ${userData.Email || 'N/A'}</div>
+                    <div class="info-item"><strong>Телефон:</strong> ${userData.Phone || 'N/A'}</div>
+                    <div class="info-item"><strong>Баллы:</strong> ${userData.Points || '0'}</div>
+                    <div class="info-item"><strong>Уровень:</strong> ${userData.Tier || 'Basic'}</div>
+                    <div class="info-item"><strong>Роли:</strong> ${userData.Roles ? userData.Roles.join(', ') : 'N/A'}</div>
+                `;
+        }
+
+        function logout() {
+            console.log('Logging out...');
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location.href = window.location.origin + '/login';
+        }
+    </script>
+</body>
+</html>
