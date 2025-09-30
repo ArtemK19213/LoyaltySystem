@@ -4,172 +4,71 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Loyalty System - Авторизация</title>
+    <link rel="stylesheet" href="/cards.css">   
     <style>
-        :root {
-            --primary-color: #4f46e5;
-            --secondary-color: #10b981;
-            --error-color: #ef4444;
-            --background-color: #f8fafc;
-            --text-color: #1f2937;
+
+        .auth {
+            max-width: 520px;
+            margin: 12vh auto;
+            padding: 22px;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .auth-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            overflow: hidden;
-        }
-
-        .auth-header {
-            background: var(--primary-color);
-            color: white;
-            padding: 30px 20px;
-            text-align: center;
-        }
-
-            .auth-header h1 {
-                font-size: 24px;
-                font-weight: 600;
-                margin-bottom: 10px;
+            .auth .title {
+                margin: 0 0 12px;   
             }
 
-        .auth-tabs {
-            display: flex;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .auth-tab {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-            .auth-tab.active {
-                border-bottom-color: var(--primary-color);
-                color: var(--primary-color);
-                font-weight: 600;
+            .auth .subtitle {
+                color: var(--muted);
+                margin: 6px 0 18px;
             }
 
-        .auth-form {
-            padding: 30px 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-            .form-group label {
-                display: block;
-                margin-bottom: 5px;
-                color: var(--text-color);
-                font-weight: 500;
+            .auth .tabs {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 12px;
             }
 
-            .form-group input {
-                width: 100%;
-                padding: 12px 15px;
-                border: 2px solid #e5e7eb;
-                border-radius: 8px;
-                font-size: 14px;
-                transition: border-color 0.3s ease;
-            }
-
-                .form-group input:focus {
-                    outline: none;
-                    border-color: var(--primary-color);
+                .auth .tabs .tab {
+                    flex: 1;
+                    text-align: center;
+                    padding: 10px;
+                    border: 1px solid var(--outline);
+                    border-radius: 10px;
+                    cursor: pointer;
+                    color: var(--muted);
                 }
 
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+                    .auth .tabs .tab.active {
+                        color: #fff;
+                        background: #0f172a;
+                        border-color: #1f2937;
+                    }
+
+        .error-message, .success-message {
+            margin-top: 8px;
         }
-
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-        }
-
-            .btn-primary:hover {
-                background: #4338ca;
-            }
-
-        .btn-secondary {
-            background: var(--secondary-color);
-            color: white;
-            margin-top: 10px;
-        }
-
-            .btn-secondary:hover {
-                background: #059669;
-            }
 
         .error-message {
-            color: var(--error-color);
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
+            color: #ef4444
         }
 
         .success-message {
-            color: var(--secondary-color);
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--primary-color);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            color: #22c55e
         }
     </style>
+
 </head>
 <body>
+    <header class="topbar">
+        <div class="brand">
+            <div class="logo">★</div>
+            <div class="title">
+                <h1>Система лояльности</h1>
+                <p>Вход в аккаунт</p>
+            </div>
+        </div>
+    </header>
+
     <div class="auth-container">
         <div class="auth-header">
             <h1>Система Лояльности</h1>
@@ -274,7 +173,12 @@
                     // Сохраняем токен и перенаправляем
                     localStorage.setItem('accessToken', data.accessToken);
                     localStorage.setItem('refreshToken', data.refreshToken);
-                    window.location.href = '/profile';
+                    await fetch(`${API_BASE_URL}/cards`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${data.accessToken}` }
+                    });
+                    window.location.href = '/main';
+                    window.location.href = '/main';
                 } else {
                     const error = await response.json();
                     showError(errorDiv, error.message || 'Ошибка авторизации');
@@ -283,36 +187,6 @@
                 showError(errorDiv, 'Сетевая ошибка');
             } finally {
                 showLoading(btn, false);
-            }
-        });
-
-        // Send SMS code
-        document.getElementById('sendCodeBtn').addEventListener('click', async () => {
-            const phone = document.getElementById('phone').value;
-            const errorDiv = document.getElementById('phoneError');
-            const successDiv = document.getElementById('codeSentMessage');
-
-            if (!phone) {
-                showError(errorDiv, 'Введите номер телефона');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/send-code`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ phone })
-                });
-
-                if (response.ok) {
-                    showSuccess(successDiv, 'Код отправлен на ваш телефон');
-                } else {
-                    showError(errorDiv, 'Ошибка отправки кода');
-                }
-            } catch (error) {
-                showError(errorDiv, 'Сетевая ошибка');
             }
         });
 
@@ -344,7 +218,14 @@
                     const data = await response.json();
                     localStorage.setItem('accessToken', data.accessToken);
                     localStorage.setItem('refreshToken', data.refreshToken);
-                    window.location.href = '/dashboard';
+                    await fetch(`${API_BASE_URL}/cards`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${data.accessToken}` }
+                    });
+                    window.location.href = '/main';
+
+                    window.location.href = '/main';
+                    window.location.href = '/main';
                 } else {
                     const error = await response.json();
                     showError(errorDiv, error.message || 'Неверный код');

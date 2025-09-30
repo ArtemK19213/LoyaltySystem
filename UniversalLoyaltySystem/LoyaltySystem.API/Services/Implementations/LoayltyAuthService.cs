@@ -29,7 +29,7 @@ namespace LoyaltySystem.API.Services.Implementations
                     Phone = "+79998887766",
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
                     Points = 1000, Tier = "Platinum",
-                    Roles = new() { LoyaltyRoles.Admin, LoyaltyRoles.Client },
+                    Roles = new() { LoyaltyRoles.Admin },
                     IsActive = true
                 },
                 new()

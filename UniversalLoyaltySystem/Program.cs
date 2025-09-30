@@ -8,10 +8,20 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
+using LoyaltySystem.API.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
+string? connection = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Controllers + Swagger (если нужен — пока отключим)
+if (!string.IsNullOrEmpty(connection))
+{
+    builder.Services.AddDbContext<AppDbContext>(opt =>
+        opt.UseSqlServer(connection));
+}
+
+// Controllers + Swagger (если нужен — пока отключён)
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -144,5 +154,13 @@ app.MapGet("/cards", async (HttpContext ctx) =>
     else { ctx.Response.StatusCode = 404; await ctx.Response.WriteAsync("Create wwwroot/cards.html"); }
 });
 
+
+app.MapGet("/main", async ctx =>
+{
+    ctx.Response.ContentType = "text/html";
+    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "main.html");
+    if (File.Exists(filePath)) await ctx.Response.SendFileAsync(filePath);
+    else { ctx.Response.StatusCode = 404; await ctx.Response.WriteAsync("Create wwwroot/main.html"); }
+});
 
 app.Run();

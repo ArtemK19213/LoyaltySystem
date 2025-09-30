@@ -1,0 +1,28 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Главная — Система лояльности</title>
+    <link rel="stylesheet" href="/cards.css" />
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <div class="logo">★</div>
+            <div class="title"><h1>Главная</h1><p>Добро пожаловать!</p></div>
+        </div>
+        <nav class="nav">
+            <a class="link" href="/cards">Карты</a>
+            <a class="link" href="/profile">Профиль</a>
+            <button class="btn ghost" onclick="localStorage.clear();location.href='/login'">Выйти</button>
+        </nav>
+    </header>
+    <main class="container">
+        <div class="card">
+            <h3>Это главная</h3>
+            <p></p>
+        </div>
+    </main>
+</body>
+</html>

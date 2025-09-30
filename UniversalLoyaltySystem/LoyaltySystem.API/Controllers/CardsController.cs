@@ -20,6 +20,11 @@ namespace LoyaltySystem.API.Controllers
         [HttpPost]
         public IActionResult CreateCard()
         {
+            // если у пользователя уже есть активная карта — вернуть её, не создавать новую
+            var existing = Cards.FirstOrDefault(c => c.UserId == UserId && c.IsActive);
+            if (existing != null)
+                return Ok(new { existing.CardNumber });
+
             var card = new Card
             {
                 Id = Guid.NewGuid(),
@@ -30,6 +35,7 @@ namespace LoyaltySystem.API.Controllers
             Cards.Add(card);
             return Ok(new { card.CardNumber });
         }
+
 
         // GET /api/cards/my
         [HttpGet("my")]

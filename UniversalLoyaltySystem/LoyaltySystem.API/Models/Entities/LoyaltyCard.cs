@@ -1,10 +1,10 @@
-﻿// File: Models/Entities/Card.cs
+﻿
 using System.ComponentModel.DataAnnotations;
 
 namespace LoyaltySystem.API.Models.Entities
 {
 
-    public class Card
+    public class LoyaltyCard
     {
         [Key] public Guid Id { get; set; }
         public Guid UserId { get; set; }
