@@ -1,0 +1,14 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" href="/css/site.css"/><script type="module" src="/js/nav.js"></script><title>Настройки</title></head><body>
+<main class="container"><section class="section"><h1>Настройки организации</h1></section>
+<section class="card section"><form id="sf" class="grid">
+<div class="grid two"><label>Объединять онлайн/офлайн<select name="MergeChannels"><option value="true">Да</option><option value="false">Нет</option></select></label>
+<label>2FA при списании<select name="RedeemSmsConfirm"><option value="false">Нет</option><option value="true">Да</option></select></label></div>
+<div class="grid three"><label>Антифрод: макс. чек/день, ₽<input name="AntiFraudMaxDaily" type="number" step="1" placeholder="50000"></label>
+<label>Блок по гео-аномалиям<select name="AntiFraudGeo"><option value="false">Нет</option><option value="true">Да</option></select></label>
+<label>Часовой пояс<input name="Timezone" placeholder="Europe/Moscow"></label></div>
+<button class="btn primary">Сохранить</button></form></section></main><div id="toast"></div>
+<script type="module">import {api,toast} from '/js/common.js';(async()=>{try{const s=await api('/api/partner/settings');for(const k of Object.keys(s)){const el=document.querySelector(`[name="${k}"]`);if(el)el.value=String(s[k]);}}catch{}})();
+document.getElementById('sf').addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(e.currentTarget);const p=Object.fromEntries(fd.entries());
+['MergeChannels','RedeemSmsConfirm','AntiFraudGeo'].forEach(k=>p[k]=String(p[k])==='true');if(p.AntiFraudMaxDaily!==''&&!isNaN(p.AntiFraudMaxDaily))p.AntiFraudMaxDaily=Number(p.AntiFraudMaxDaily);
+await api('/api/partner/settings',{method:'PUT',body:JSON.stringify(p)});toast('Сохранено');});</script></body></html>

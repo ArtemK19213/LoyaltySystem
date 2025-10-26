@@ -1,0 +1,21 @@
+
+<!doctype html><html lang="ru"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" href="/css/site.css"/><script type="module" src="/js/nav.js"></script><title>Регистрация</title></head>
+<body><main class="container"><section class="hero"><h1>Регистрация</h1></section>
+<section class="surface" style="max-width:760px;margin:18px 0">
+<div class="pills"><div class="pill" id="c">Я клиент</div><div class="pill" id="p">Я партнёр</div></div>
+<form id="r" class="grid">
+<label><span>Email</span><input name="email" required></label>
+<label><span>Пароль</span><input name="password" type="password" required></label>
+<label><span>ФИО</span><input name="fullName"></label>
+<div id="org" style="display:none"><label><span>Организация</span><input name="orgName" placeholder="Мой магазин"></label></div>
+<button class="btn primary">Создать</button></form></section></main><div id="toast"></div>
+<script type="module">import {api} from '/js/common.js';let role='Client';
+function set(r){role=r;c.classList.toggle('tab',false);p.classList.toggle('tab',false);c.classList.toggle('active',r==='Client');p.classList.toggle('active',r==='Partner');org.style.display=r==='Partner'?'':'none';}
+c.onclick=()=>set('Client');p.onclick=()=>set('Partner');set('Client');
+r.addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(r);
+const payload={email:fd.get('email'),password:fd.get('password'),fullName:fd.get('fullName')||null};
+if(role==='Client')await api('/api/auth/register/client',{method:'POST',body:JSON.stringify(payload)});
+else await api('/api/auth/register/partner?orgName='+encodeURIComponent(fd.get('orgName')||'Мой магазин'),{method:'POST',body:JSON.stringify(payload)});
+const res=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:payload.email,password:payload.password})});
+localStorage.setItem('token',res.accessToken);location.href='/html/profile.html';});</script></body></html>

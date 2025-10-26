@@ -1,0 +1,14 @@
+
+<!doctype html><html lang="ru"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" href="/css/site.css"/><script type="module" src="/js/nav.js"></script><title>Вход</title></head>
+<body><main class="container"><section class="hero"><h1>Вход</h1></section>
+<section class="surface" style="max-width:560px;margin:18px 0"><form id="f" class="grid">
+<label><span>Email</span><input name="email" type="email" required></label>
+<label><span>Пароль</span><input name="password" type="password" required></label>
+<button class="btn primary">Войти</button>
+<div class="small">Нет аккаунта? <a href="/html/register.html">Регистрация</a></div>
+</form></section></main><div id="toast"></div>
+<script type="module">import {api} from '/js/common.js';
+f.addEventListener('submit',async e=>{e.preventDefault();const d=new FormData(f);
+const r=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:d.get('email'),password:d.get('password')})});
+localStorage.setItem('token',r.accessToken);location.href='/html/profile.html';});</script></body></html>

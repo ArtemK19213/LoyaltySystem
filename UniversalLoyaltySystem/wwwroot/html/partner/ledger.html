@@ -1,0 +1,13 @@
+
+<!doctype html><html lang="ru"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" href="/css/site.css"/><script type="module" src="/js/nav.js"></script><title>Транзакции</title></head><body>
+<main class="container"><section class="hero"><h1>Журнал транзакций</h1></section>
+<section class="surface"><div class="grid three">
+<label><span>Дата от</span><input id="from" type="date"></label><label><span>Дата до</span><input id="to" type="date"></label><label><span>Поиск</span><input id="q" placeholder="карта/заказ/клиент"></label></div>
+<div><button class="btn" id="go" style="margin-top:10px">Показать</button></div><div id="list" style="margin-top:12px">Задайте фильтры.</div></section></main>
+<div id="toast"></div>
+<script type="module">import {api,fmt} from '/js/common.js';
+go.onclick=async()=>{const p=new URLSearchParams();if(from.value)p.set('from',from.value);if(to.value)p.set('to',to.value);if(q.value.trim())p.set('q',q.value.trim());
+const rows=await api('/api/partner/ledger?'+p.toString());const host=document.getElementById('list');if(!rows.length){host.textContent='Нет данных';return;}
+host.innerHTML='<table class="tbl"><thead><tr><th>Дата</th><th>Тип</th><th>Карта</th><th>Δ</th><th>Баланс</th><th>Заказ</th></tr></thead><tbody>'+
+rows.map(x=>`<tr><td>${fmt(x.ts)}</td><td>${x.type}</td><td>${x.cardNumber}</td><td>${x.delta}</td><td>${x.balance}</td><td>${x.orderId||''}</td></tr>`).join('')+'</tbody></table>';};</script></body></html>

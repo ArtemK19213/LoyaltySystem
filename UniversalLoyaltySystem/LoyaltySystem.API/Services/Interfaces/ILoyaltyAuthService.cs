@@ -1,12 +1,12 @@
-﻿using LoyaltySystem.API.Models.Requests;
-using LoyaltySystem.API.Models.Responses;
+using LoyaltySystem.API.Models.Auth;
 
 namespace LoyaltySystem.API.Services.Interfaces;
 
 public interface ILoyaltyAuthService
 {
-    Task<AuthResult> LoginAsync(string login, string password);
-    Task<AuthResult> LoginWithPhoneAsync(string phone, string code);
-    Task<AuthResult> RefreshTokenAsync(string refreshToken);
-    Task<bool> ValidateUserAsync(string userId);
+    Task<int> RegisterClientAsync(RegisterRequest request, CancellationToken ct = default);
+    Task<int> RegisterPartnerAsync(RegisterRequest request, string? orgName = null, CancellationToken ct = default);
+    Task<AuthResponse> LoginAsync(LoginRequest request, string ip, string ua, CancellationToken ct = default);
+    Task<AuthResponse> RefreshAsync(string refreshToken, string ip, string ua, CancellationToken ct = default);
+    Task RevokeAsync(string refreshToken, CancellationToken ct = default);
 }

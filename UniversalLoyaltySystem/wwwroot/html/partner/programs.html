@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" href="/css/site.css"/><script type="module" src="/js/nav.js"></script>
+<title>Программы</title>
+</head>
+<body>
+<main class="container">
+  <section class="hero">
+    <h1>Программы лояльности</h1>
+    <div class="small">Бонусная / Дисконтная / Подписка / Кешбэк. Нормальные отступы и вкладки.</div>
+  </section>
+
+  <div class="grid two">
+    <!-- Создание -->
+    <section class="surface">
+      <h3>Новая программа</h3>
+
+      <form id="create" class="grid">
+        <label><span>Тип программы</span>
+          <select id="ptype">
+            <option value="Bonus">Бонусная (баллы)</option>
+            <option value="Discount">Дисконтная (скидка)</option>
+            <option value="Subscription">Подписка</option>
+            <option value="Cashback">Кешбэк</option>
+          </select>
+        </label>
+
+        <label><span>Название</span>
+          <input id="pname" placeholder="Например: «Бонусы 5%»" required>
+        </label>
+
+        <!-- Вкладки (для Bonus/Cashback) -->
+        <div id="bonusBlock">
+            <div class="subtabs" id="subtabs">
+                <button type="button" class="subtab active" data-t="earn">Начисление</button>
+                <button type="button" class="subtab" data-t="redeem">Списание</button>
+                <button type="button" class="subtab" data-t="life">Срок жизни</button>
+                <button type="button" class="subtab" data-t="limits">Лимиты</button>
+                <button type="button" class="subtab" data-t="ex">Исключения</button>
+            </div>
+
+
+            <!-- Начисление — правила ЭТОЙ программы -->
+            <div class="tabcontent active" id="tab-earn">
+                <div class="grid two">
+                    <label><span>Баллов за 100 ₽</span><input id="pointsPer100" type="number" step="0.01" placeholder="5"></label>
+                    <label><span>Мин. чек для начисления</span><input id="minEarn" type="number" step="0.01" placeholder="300"></label>
+                </div>
+
+                <div class="grid three">
+                    <label>
+                        <span>Округление</span>
+                        <select id="round">
+                            <option value="floor">Вниз</option>
+                            <option value="round">До целого</option>
+                            <option value="ceil">Вверх</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Начислять на уценённые товары</span>
+                        <select id="earnOnSale"><option value="false">Нет</option><option value="true">Да</option></select>
+                    </label>
+                    <div></div>
+                </div>
+
+                <div class="grid three">
+                    <label><span>Welcome-бонусы</span><input id="welcome" type="number" step="1" placeholder="100"></label>
+                    <label><span>ДР множитель</span><input id="bdayMult" type="number" step="0.1" placeholder="2"></label>
+                    <label><span>ДР фикс. бонусы</span><input id="bdayPoints" type="number" step="1" placeholder="300"></label>
+                </div>
+
+                <div class="grid two">
+                    <label><span>Окно ДР ± дней</span><input id="bdayWindow" type="number" step="1" placeholder="7"></label>
+                    <label><span>Отложенная активация, дней</span><input id="delayDays" type="number" step="1" placeholder="14"></label>
+                </div>
+
+                <label>
+                    <span>Если оплата частично баллами</span>
+                    <select id="earnOnRedeem">
+                        <option value="exclude">Не учитывать сумму, оплаченную баллами</option>
+                        <option value="include">Учитывать всю сумму</option>
+                        <option value="base">Начислять только от суммы без баллов</option>
+                    </select>
+                </label>
+            </div>
+
+
+
+            <!-- Списание -->
+            <div class="tabcontent" id="tab-redeem">
+                <div class="grid three">
+                    <label><span>1 балл = ₽</span><input id="pointValue" type="number" step="0.01" placeholder="1"></label>
+                    <label><span>Мин. списание</span><input id="minRedeem" type="number" step="1" placeholder="50"></label>
+                    <label><span>Шаг списания</span><input id="stepRedeem" type="number" step="1" placeholder="10"></label>
+                </div>
+                <div class="grid three">
+                    <label><span>Макс. % оплаты баллами</span><input id="maxPct" type="number" step="1" placeholder="90"></label>
+                    <label><span>Совместно с промокодом</span><select id="stackPromo"><option value="false">Нет</option><option value="true">Да</option></select></label>
+                    <label><span>Частичное списание</span><select id="partial"><option value="true">Разрешить</option><option value="false">Запретить</option></select></label>
+                </div>
+                <div class="grid two">
+                    <label><span>2FA при списании</span><select id="twofa"><option value="false">Нет</option><option value="true">Да</option></select></label>
+                    <label><span>Порядок списания</span><select id="spendPolicy"><option value="FIFO">FIFO (старые сначала)</option><option value="LIFO">LIFO (новые сначала)</option></select></label>
+                </div>
+            </div>
+
+            <!-- Срок жизни -->
+            <div class="tabcontent" id="tab-life">
+                <div class="grid three">
+                    <label><span>Срок жизни (мес.)</span><input id="lifeMonths" type="number" step="1" placeholder="12"></label>
+                    <label><span>Политика истечения</span><select id="lifePolicy"><option value="FromEarnDate">От начисления</option><option value="FromLastActivity">От последней активности</option></select></label>
+                    <label><span>Напоминать о сгорании за, дней</span><input id="expireNotify" type="number" step="1" placeholder="3"></label>
+                </div>
+            </div>
+
+            <!-- Лимиты -->
+            <div class="tabcontent" id="tab-limits">
+                <div class="grid three">
+                    <label><span>Макс. бонусов за чек</span><input id="limCheck" type="number" step="1"></label>
+                    <label><span>Макс. бонусов за день</span><input id="limDay" type="number" step="1"></label>
+                    <label><span>Макс. бонусов за месяц</span><input id="limMonth" type="number" step="1"></label>
+                </div>
+            </div>
+
+            <!-- Исключения -->
+            <div class="tabcontent" id="tab-ex">
+                <div class="grid two">
+                    <label><span>Исключить категории (CSV)</span><input id="excludeCats" placeholder="Подарочные сертификаты, Акции"></label>
+                    <label><span>При возврате</span><select id="onRefund"><option value="revert">Отменять начисление</option><option value="keep">Оставлять</option></select></label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Дисконтная -->
+        <div id="discBlock" style="display:none">
+          <h3>Дисконтная программа</h3>
+          <div id="levels" class="grid"></div>
+          <button type="button" class="btn" id="addLevel">Добавить уровень</button>
+          <div class="grid three" style="margin-top:10px">
+            <label><span>Суммирование со скидками</span><select id="discStack"><option value="false">Запретить</option><option value="true">Разрешить</option></select></label>
+            <label><span>Мин. чек для скидки</span><input id="discMin" type="number" step="0.01"></label>
+            <label><span>Исключить категории (CSV)</span><input id="discEx" placeholder="Сертификаты, Акции"></label>
+          </div>
+        </div>
+
+        <!-- Подписка -->
+        <div id="subBlock" style="display:none">
+          <h3>Подписка</h3>
+          <div class="grid three">
+            <label><span>Цена в месяц, ₽</span><input id="subPrice" type="number" step="1" placeholder="199"></label>
+            <label><span>Доп. кешбэк, %</span><input id="subBonus" type="number" step="0.1" placeholder="5"></label>
+            <label><span>Бесплатная доставка от, ₽</span><input id="subShipThr" type="number" step="1" placeholder="499"></label>
+          </div>
+          <label><span>Преимущества</span><textarea id="subBenefits" placeholder="Приоритетная поддержка; закрытые распродажи; бесплатная доставка…"></textarea></label>
+        </div>
+
+        <!-- Кешбэк -->
+        <div id="cbBlock" style="display:none">
+          <h3>Кешбэк</h3>
+          <div class="grid three">
+            <label><span>Процент базовый, %</span><input id="cbBasePct" type="number" step="0.1" placeholder="2"></label>
+            <label><span>Мин. чек для кешбэка</span><input id="cbMin" type="number" step="0.01" placeholder="0"></label>
+            <label><span>Кап за чек, ₽</span><input id="cbCapCheck" type="number" step="1" placeholder="0"></label>
+          </div>
+          <label><span>Категории с повышенным кешбэком (JSON)</span>
+            <textarea id="cbCategories" placeholder='Например: [{"category":"Рестораны","percent":5}]'></textarea></label>
+        </div>
+
+        <button class="btn primary">Создать</button>
+      </form>
+    </section>
+
+    <!-- Список -->
+    <section class="surface">
+      <h3>Мои программы</h3>
+      <div id="list" class="small">Загрузка…</div>
+    </section>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script type="module">
+import {api,toast} from '/js/common.js';
+
+/* вкладки */
+const subtabs=document.getElementById('subtabs');
+function showTab(t){
+  document.querySelectorAll('.subtab').forEach(el=>el.classList.toggle('active',el.dataset.t===t));
+  document.querySelectorAll('.tabcontent').forEach(el=>el.classList.toggle('active',el.id==='tab-'+t));
+}
+subtabs?.addEventListener('click',e=>{
+  const btn=e.target.closest('.subtab'); if(!btn) return;
+  e.preventDefault(); e.stopPropagation(); showTab(btn.dataset.t);
+});
+
+/* тип программы */
+const typeSel=document.getElementById('ptype');
+const bonusBlock=document.getElementById('bonusBlock');
+const discBlock=document.getElementById('discBlock');
+const subBlock=document.getElementById('subBlock');
+const cbBlock=document.getElementById('cbBlock');
+function syncType(){
+  bonusBlock.style.display=(typeSel.value==='Bonus'||typeSel.value==='Cashback')?'block':'none';
+  discBlock.style.display=typeSel.value==='Discount'?'block':'none';
+  subBlock.style.display=typeSel.value==='Subscription'?'block':'none';
+  cbBlock.style.display=typeSel.value==='Cashback'?'block':'none';
+}
+typeSel.onchange=syncType; syncType();
+
+/* уровни скидок */
+const levels=document.getElementById('levels'), addLevel=document.getElementById('addLevel');
+addLevel.onclick=()=>{const row=document.createElement('div');row.className='grid three';
+row.innerHTML=`<label><span>Уровень</span><input class="lvName" placeholder="Gold"></label>
+<label><span>Скидка, %</span><input class="lvPct" type="number" step="0.1" placeholder="5"></label>
+<label><span>Оборот от, ₽</span><input class="lvSpend" type="number" step="0.01" placeholder="50000"></label>`;
+levels.appendChild(row);};
+
+/* создание */
+document.getElementById('create').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const t=typeSel.value;
+  const p={ programType:t, name:document.getElementById('pname').value };
+
+  if(t==='Bonus' || t==='Cashback'){
+    p.PointsPerCurrency = Number(pointsPer100.value||0)/100;
+    p.MinReceiptForEarn = Number(minEarn.value||0);
+    p.Rounding = round.value;
+    p.EarnOnSale = (earnOnSale.value==='true');
+    /* база расчёта убрана */
+    p.WelcomePoints = Number(welcome.value||0);
+    p.ReferralInviter = Number(refInv.value||0);
+    p.ReferralInvitee = Number(refNew.value||0);
+    p.BirthdayMultiplier = Number(bdayMult.value||0);
+    p.BirthdayPoints = Number(bdayPoints.value||0);
+    p.BirthdayWindowDays = Number(bdayWindow.value||0);
+    p.ActivationDelayDays = Number(delayDays.value||0);
+    p.EarnWhenRedeem = earnOnRedeem.value;
+
+    /* списание */
+    p.PointValue = Number(pointValue.value||1);
+    p.MinRedeem = Number(minRedeem.value||0);
+    p.StepRedeem = Number(stepRedeem.value||1);
+    p.MaxRedeemPercent = Number(maxPct.value||100);
+    p.AllowStackPromo = (stackPromo.value==='true');
+    p.PartialRedeem = (partial.value==='true');
+    p.Require2FA = (twofa.value==='true');
+    p.SpendPolicy = spendPolicy.value;
+
+    /* срок жизни */
+    p.ExpireMonths = Number(lifeMonths.value||0);
+    p.ExpirePolicy = lifePolicy.value;
+    p.ExpireNotifyDays = Number(expireNotify.value||0);
+
+    /* лимиты + исключения */
+    p.LimitPerCheck = Number(limCheck.value||0);
+    p.LimitPerDay = Number(limDay.value||0);
+    p.LimitPerMonth = Number(limMonth.value||0);
+    p.ExcludeCategories = excludeCats.value;
+    p.OnRefund = onRefund.value;
+  }
+
+  if(t==='Discount'){
+    const names=[...document.querySelectorAll('.lvName')].map(x=>x.value);
+    const pcts =[...document.querySelectorAll('.lvPct')].map(x=>Number(x.value||0));
+    const spends=[...document.querySelectorAll('.lvSpend')].map(x=>Number(x.value||0));
+    p.Levels = names.map((n,i)=>({name:n||('L'+(i+1)), percent:pcts[i], minSpend:spends[i]}));
+    p.AllowStacking = (discStack.value==='true');
+    p.MinReceiptForDiscount = Number(discMin.value||0);
+    p.ExcludeCategories = discEx.value;
+  }
+
+  if(t==='Subscription'){
+    p.MonthlyPrice = Number(subPrice.value||0);
+    p.ExtraCashbackPercent = Number(subBonus.value||0);
+    p.FreeShippingThreshold = Number(subShipThr.value||0);
+    p.Benefits = subBenefits.value;
+  }
+
+  if(t==='Cashback'){
+    p.CashbackBasePercent = Number(cbBasePct.value||0);
+    p.MinReceiptForCashback = Number(cbMin.value||0);
+    p.CashbackCapPerCheck = Number(cbCapCheck.value||0);
+    try{ p.CashbackCategoryRules = JSON.parse(cbCategories.value||'[]'); }catch{ p.CashbackCategoryRules=[]; }
+  }
+
+  await api('/api/partner/programs',{method:'POST',body:JSON.stringify(p)});
+  toast('Программа создана'); load(); e.target.reset(); syncType(); showTab('earn');
+});
+
+/* список */
+async function load(){
+  const items=await api('/api/partner/programs'); const host=document.getElementById('list');
+  if(!items.length){host.textContent='Пока нет программ';return;}
+  const map={Bonus:'Бонусная',Discount:'Дисконтная',Subscription:'Подписка',Cashback:'Кешбэк'};
+  host.innerHTML='<table class="tbl"><thead><tr><th>Тип</th><th>Название</th><th>Статус</th><th>Создана</th></tr></thead><tbody>'+
+    items.map(p=>`<tr><td>${map[p.programType]||p.programType}</td><td><b>${p.name}</b></td><td>${p.isActive?'Активна':'Выкл.'}</td><td>${new Intl.DateTimeFormat('ru-RU',{dateStyle:'medium'}).format(new Date(p.createdAt))}</td></tr>`).join('')+
+    '</tbody></table>';
+}
+load();
+</script>
+</body>
+</html>

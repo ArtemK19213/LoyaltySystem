@@ -1,0 +1,25 @@
+
+<!doctype html><html lang="ru"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" href="/css/site.css"/><script type="module" src="/js/nav.js"></script><title>Акции</title></head><body>
+<main class="container"><section class="hero"><h1>Акции и события</h1><div class="small">Сообщения клиенту идут только в ЛК.</div></section>
+<div class="grid two"><section class="surface"><h3>Новая акция</h3>
+<form id="cf" class="grid">
+<label><span>Название</span><input name="name" required></label>
+<label><span>Период</span><input name="period" placeholder="2025-10-01..2025-12-31"></label>
+<div class="grid two"><label><span>Тип награды</span><select name="rewardType"><option value="ExtraPercent">Доп. %</option><option value="ExtraPoints">Баллы</option><option value="DiscountPercent">Скидка %</option></select></label>
+<label><span>Величина</span><input name="rewardValue" type="number" step="0.1"></label></div>
+<h3>Условия</h3>
+<div class="grid two"><label><span>Категории (CSV)</span><input name="categories"></label><label><span>Мин. чек, ₽</span><input name="minAmount" type="number" step="0.01"></label></div>
+<div class="grid three"><label><span>Промокод</span><input name="promo"></label><label><span>Первая покупка</span><select name="firstPurchase"><option value="false">Нет</option><option value="true">Да</option></select></label><label><span>Неактивность, дней</span><input name="inactivityDays" type="number" step="1" placeholder="90"></label></div>
+<div class="grid three"><label><span>ДР окно ±дней</span><input name="birthdayWindow" type="number" step="1" placeholder="3"></label><label><span>Только подписчики</span><select name="subscriptionOnly"><option value="false">Нет</option><option value="true">Да</option></select></label><label><span>Уровни (CSV)</span><input name="levels" placeholder="Gold, Platinum"></label></div>
+<label><span>Сообщение (в ЛК)</span><textarea name="message" placeholder="Текст уведомления"></textarea></label>
+<button class="btn primary">Создать</button></form></section>
+<section class="surface"><h3>Текущие акции</h3><div id="list" class="small">Загрузка…</div></section></div></main>
+<div id="toast"></div>
+<script type="module">import {api,toast} from '/js/common.js';
+async function load(){const items=await api('/api/partner/campaigns');const host=document.getElementById('list');if(!items.length){host.textContent='Пока нет';return;}
+host.innerHTML='<table class="tbl"><thead><tr><th>Название</th><th>Период</th><th>Награда</th></tr></thead><tbody>'+
+items.map(c=>`<tr><td><b>${c.name}</b></td><td>${c.period||'—'}</td><td>${c.rewardType} ${c.rewardValue}</td></tr>`).join('')+'</tbody></table>'; } load();
+cf.addEventListener('submit',async e=>{e.preventDefault();const fd=new FormData(cf);const p=Object.fromEntries(fd.entries());
+['firstPurchase','subscriptionOnly'].forEach(k=>p[k]=String(p[k])==='true');['rewardValue','minAmount','inactivityDays','birthdayWindow'].forEach(k=>{if(p[k]!==''&&!isNaN(p[k]))p[k]=Number(p[k]);});
+p.channel='Inbox';await api('/api/partner/campaigns',{method:'POST',body:JSON.stringify(p)});toast('Акция создана');cf.reset();load();});</script></body></html>

@@ -1,0 +1,9 @@
+
+<!doctype html><html lang="ru"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" href="/css/site.css"/><script type="module" src="/js/nav.js"></script><title>История</title></head><body>
+<main class="container"><section class="hero"><h1>История операций</h1></section>
+<section class="surface"><div id="list">Загрузка…</div></section></main><div id="toast"></div>
+<script type="module">import {api,fmt} from '/js/common.js';
+const rows=await api('/api/client/ledger');const host=document.getElementById('list');if(!rows.length){host.textContent='Пока пусто';}
+else{host.innerHTML='<table class="tbl"><thead><tr><th>Дата</th><th>Тип</th><th>Карта</th><th>Δ</th><th>Баланс</th><th>Заказ</th></tr></thead><tbody>'+
+rows.map(x=>`<tr><td>${fmt(x.ts)}</td><td>${x.type}</td><td>${x.cardNumber}</td><td>${x.delta}</td><td>${x.balance}</td><td>${x.orderId||''}</td></tr>`).join('')+'</tbody></table>';}</script></body></html>

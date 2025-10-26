@@ -1,0 +1,8 @@
+
+<!doctype html><html lang="ru"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" href="/css/site.css"/><script type="module" src="/js/nav.js"></script><title>Сообщения</title></head><body>
+<main class="container"><section class="hero"><h1>Сообщения</h1><div class="small">Здесь приходят уведомления по акциям и бонусам.</div></section>
+<section id="list" class="grid"></section></main>
+<div id="toast"></div><script type="module">import {api,fmt} from '/js/common.js';
+const host=list;const msgs=await api('/api/client/inbox');if(!msgs.length){host.innerHTML='<div class="small">Сообщений нет</div>';}
+else{host.innerHTML=msgs.map(m=>`<div class="surface"><div class="small">${fmt(m.ts)}</div><h3>${m.title||'Уведомление'}</h3><div>${m.body}</div></div>`).join('');}</script></body></html>

@@ -1,0 +1,10 @@
+
+<!doctype html><html lang="ru"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" href="/css/site.css"/><script type="module" src="/js/nav.js"></script><title>Мои карты</title></head><body>
+<main class="container"><section class="hero"><h1>Мои карты</h1></section>
+<section id="cards" class="grid two"></section></main><div id="toast"></div>
+<script type="module">import {api,fmt} from '/js/common.js';
+const host=cards;const items=await api('/api/client/cards');
+if(!items.length){host.innerHTML='<div class="small">Карт пока нет</div>';}
+else{host.innerHTML=items.map(c=>`<div class="surface"><div class="card-visual"><div><div class="small">${c.programName}</div><div class="num">№ ${c.cardNumber}</div></div></div><div class="pills" style="margin-top:10px"><span class="pill">Баланс: ${c.balance} б.</span><span class="pill">С ${fmt(c.createdAt)}</span></div></div>`).join('');}
+</script></body></html>

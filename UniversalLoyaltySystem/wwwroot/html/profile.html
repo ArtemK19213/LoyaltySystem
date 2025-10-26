@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <script type="module" src="/js/nav.js"></script>
+    <title>Профиль</title>
+</head>
+<body>
+    <main class="container">
+        <section class="hero">
+            <h1 id="nm">Профиль</h1>
+            <!-- Оставляем только роль, e-mail ниже в карточке -->
+            <div class="pills"><span class="pill" id="role">—</span></div>
+        </section>
+
+        <section class="surface" style="max-width:860px">
+            <div class="grid two">
+                <div><label><span>E-mail</span><div id="e" class="pill"></div></label></div>
+                <div><label><span>ФИО</span><div id="f" class="pill"></div></label></div>
+                <div id="orgRow" style="display:none"><label><span>Организация</span><div id="o" class="pill"></div></label></div>
+                <div><label><span>Аккаунт с</span><div id="c" class="pill"></div></label></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast"></div>
+    <script type="module">
+        import { api, fmt } from '/js/common.js';
+        (async () => {
+            const me = await api('/api/auth/me');
+            nm.textContent = me.fullName?.trim() || 'Профиль';
+            role.textContent = me.role === 'Admin' ? 'Админ' : me.role === 'Partner' ? 'Партнёр' : 'Клиент';
+            e.textContent = me.email; f.textContent = me.fullName || '—'; c.textContent = fmt(me.createdAt);
+            if (me.organizationId) { orgRow.style.display = ''; o.textContent = me.organizationName || ('Орг. #' + me.organizationId); }
+        })();
+    </script>
+</body>
+</html>

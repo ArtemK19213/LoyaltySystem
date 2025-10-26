@@ -1,0 +1,604 @@
+2025-10-14 13:09:05.750 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 13:09:05.812 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 13:09:06.250 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 13:09:06.253 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 13:09:06.635 +03:00 [INF] Executed DbCommand (329ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+CREATE DATABASE [LoyaltySystem];
+2025-10-14 13:09:06.751 +03:00 [INF] Executed DbCommand (113ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+IF SERVERPROPERTY('EngineEdition') <> 5
+BEGIN
+    ALTER DATABASE [LoyaltySystem] SET READ_COMMITTED_SNAPSHOT ON;
+END;
+2025-10-14 13:09:06.773 +03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-10-14 13:09:06.839 +03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [__EFMigrationsHistory] (
+    [MigrationId] nvarchar(150) NOT NULL,
+    [ProductVersion] nvarchar(32) NOT NULL,
+    CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+);
+2025-10-14 13:09:06.840 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-10-14 13:09:06.858 +03:00 [INF] Executed DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-10-14 13:09:06.863 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-10-14 13:09:06.878 +03:00 [INF] Applying migration '20251014093917_Wallet-Network-Init'.
+2025-10-14 13:09:06.930 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [LoyaltyCards] (
+    [Id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [CardNumber] nvarchar(450) NOT NULL,
+    [IsActive] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_LoyaltyCards] PRIMARY KEY ([Id])
+);
+2025-10-14 13:09:06.933 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [LoyaltyUsers] (
+    [Id] uniqueidentifier NOT NULL,
+    [Email] nvarchar(450) NOT NULL,
+    [PasswordHash] nvarchar(max) NOT NULL,
+    [Role] nvarchar(max) NOT NULL,
+    [Tier] nvarchar(max) NOT NULL,
+    [Points] int NOT NULL,
+    [MerchantId] uniqueidentifier NULL,
+    [FullName] nvarchar(max) NULL,
+    [DateOfBirth] datetime2 NULL,
+    CONSTRAINT [PK_LoyaltyUsers] PRIMARY KEY ([Id])
+);
+2025-10-14 13:09:06.935 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Merchants] (
+    [Id] uniqueidentifier NOT NULL,
+    [Name] nvarchar(160) NOT NULL,
+    [ContactEmail] nvarchar(200) NOT NULL,
+    [AcceptsNetwork] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [IsActive] bit NOT NULL,
+    CONSTRAINT [PK_Merchants] PRIMARY KEY ([Id])
+);
+2025-10-14 13:09:06.938 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Programs] (
+    [Id] uniqueidentifier NOT NULL,
+    [Name] nvarchar(120) NOT NULL,
+    [Currency] nvarchar(8) NOT NULL,
+    [MerchantId] uniqueidentifier NOT NULL,
+    [PointsPerCurrency] decimal(18,2) NOT NULL,
+    [IsNetwork] bit NOT NULL,
+    [IsActive] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_Programs] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Programs_Merchants_MerchantId] FOREIGN KEY ([MerchantId]) REFERENCES [Merchants] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 13:09:06.942 +03:00 [INF] Executed DbCommand (4ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [PointsLedger] (
+    [Id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [MerchantId] uniqueidentifier NULL,
+    [MerchantId1] uniqueidentifier NULL,
+    [Type] nvarchar(max) NOT NULL,
+    [Amount] int NOT NULL,
+    [ReferenceId] nvarchar(450) NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_PointsLedger] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_PointsLedger_Merchants_MerchantId] FOREIGN KEY ([MerchantId]) REFERENCES [Merchants] ([Id]),
+    CONSTRAINT [FK_PointsLedger_Merchants_MerchantId1] FOREIGN KEY ([MerchantId1]) REFERENCES [Merchants] ([Id]),
+    CONSTRAINT [FK_PointsLedger_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 13:09:06.944 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Rules] (
+    [Id] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [Name] nvarchar(120) NOT NULL,
+    [Priority] int NOT NULL,
+    [IsEnabled] bit NOT NULL,
+    [StopProcessing] bit NOT NULL,
+    [ConditionJson] nvarchar(max) NOT NULL,
+    [ActionJson] nvarchar(max) NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_Rules] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Rules_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 13:09:06.946 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [WalletAccounts] (
+    [id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [Balance] int NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [RowVersion] rowversion NULL,
+    CONSTRAINT [PK_WalletAccounts] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_WalletAccounts_LoyaltyUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [LoyaltyUsers] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_WalletAccounts_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 13:09:06.948 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyCards_CardNumber] ON [LoyaltyCards] ([CardNumber]);
+2025-10-14 13:09:06.950 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyCards_UserId] ON [LoyaltyCards] ([UserId]) WHERE [IsActive] = 1;
+2025-10-14 13:09:06.951 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyUsers_Email] ON [LoyaltyUsers] ([Email]);
+2025-10-14 13:09:06.952 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Merchants_Name] ON [Merchants] ([Name]);
+2025-10-14 13:09:06.953 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_MerchantId] ON [PointsLedger] ([MerchantId]);
+2025-10-14 13:09:06.954 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_MerchantId1] ON [PointsLedger] ([MerchantId1]);
+2025-10-14 13:09:06.955 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_ProgramId] ON [PointsLedger] ([ProgramId]);
+2025-10-14 13:09:06.956 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_UserId_CreatedAt] ON [PointsLedger] ([UserId], [CreatedAt]);
+2025-10-14 13:09:06.957 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_UserId_ProgramId] ON [PointsLedger] ([UserId], [ProgramId]);
+2025-10-14 13:09:06.959 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_PointsLedger_UserId_ProgramId_ReferenceId] ON [PointsLedger] ([UserId], [ProgramId], [ReferenceId]) WHERE [ReferenceId] IS NOT NULL;
+2025-10-14 13:09:06.960 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Programs_MerchantId] ON [Programs] ([MerchantId]);
+2025-10-14 13:09:06.961 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Rules_ProgramId_Priority] ON [Rules] ([ProgramId], [Priority]);
+2025-10-14 13:09:06.962 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_WalletAccounts_ProgramId] ON [WalletAccounts] ([ProgramId]);
+2025-10-14 13:09:06.964 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_WalletAccounts_UserId_ProgramId] ON [WalletAccounts] ([UserId], [ProgramId]);
+2025-10-14 13:09:06.965 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20251014093917_Wallet-Network-Init', N'8.0.10');
+2025-10-14 13:34:40.767 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 13:34:40.829 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 13:34:40.964 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 13:34:40.966 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 13:36:13.286 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 13:36:13.347 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 13:36:13.672 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 13:36:13.674 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 13:36:14.028 +03:00 [INF] Executed DbCommand (306ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+CREATE DATABASE [LoyaltySystem];
+2025-10-14 13:36:14.118 +03:00 [INF] Executed DbCommand (88ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+IF SERVERPROPERTY('EngineEdition') <> 5
+BEGIN
+    ALTER DATABASE [LoyaltySystem] SET READ_COMMITTED_SNAPSHOT ON;
+END;
+2025-10-14 13:36:14.137 +03:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-10-14 13:36:14.199 +03:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [__EFMigrationsHistory] (
+    [MigrationId] nvarchar(150) NOT NULL,
+    [ProductVersion] nvarchar(32) NOT NULL,
+    CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+);
+2025-10-14 13:36:14.200 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-10-14 13:36:14.215 +03:00 [INF] Executed DbCommand (13ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-10-14 13:36:14.220 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-10-14 13:36:14.233 +03:00 [INF] Applying migration '20251014103441_Wallet-Network-Init'.
+2025-10-14 13:36:14.281 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [LoyaltyCards] (
+    [Id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [CardNumber] nvarchar(450) NOT NULL,
+    [IsActive] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_LoyaltyCards] PRIMARY KEY ([Id])
+);
+2025-10-14 13:36:14.283 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [LoyaltyUsers] (
+    [Id] uniqueidentifier NOT NULL,
+    [Email] nvarchar(450) NOT NULL,
+    [PasswordHash] nvarchar(max) NOT NULL,
+    [Role] nvarchar(max) NOT NULL,
+    [Tier] nvarchar(max) NOT NULL,
+    [Points] int NOT NULL,
+    [MerchantId] uniqueidentifier NULL,
+    [FullName] nvarchar(max) NULL,
+    [DateOfBirth] datetime2 NULL,
+    CONSTRAINT [PK_LoyaltyUsers] PRIMARY KEY ([Id])
+);
+2025-10-14 13:36:14.286 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Merchants] (
+    [Id] uniqueidentifier NOT NULL,
+    [Name] nvarchar(160) NOT NULL,
+    [ContactEmail] nvarchar(200) NOT NULL,
+    [AcceptsNetwork] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [IsActive] bit NOT NULL,
+    CONSTRAINT [PK_Merchants] PRIMARY KEY ([Id])
+);
+2025-10-14 13:36:14.288 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Programs] (
+    [Id] uniqueidentifier NOT NULL,
+    [Name] nvarchar(120) NOT NULL,
+    [Currency] nvarchar(8) NOT NULL,
+    [MerchantId] uniqueidentifier NOT NULL,
+    [PointsPerCurrency] decimal(18,2) NOT NULL,
+    [IsNetwork] bit NOT NULL,
+    [IsActive] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_Programs] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Programs_Merchants_MerchantId] FOREIGN KEY ([MerchantId]) REFERENCES [Merchants] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 13:36:14.290 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [PointsLedger] (
+    [Id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [MerchantId] uniqueidentifier NULL,
+    [MerchantId1] uniqueidentifier NULL,
+    [Type] nvarchar(max) NOT NULL,
+    [Amount] int NOT NULL,
+    [ReferenceId] nvarchar(450) NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_PointsLedger] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_PointsLedger_Merchants_MerchantId] FOREIGN KEY ([MerchantId]) REFERENCES [Merchants] ([Id]),
+    CONSTRAINT [FK_PointsLedger_Merchants_MerchantId1] FOREIGN KEY ([MerchantId1]) REFERENCES [Merchants] ([Id]),
+    CONSTRAINT [FK_PointsLedger_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 13:36:14.292 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Rules] (
+    [Id] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [Name] nvarchar(120) NOT NULL,
+    [Priority] int NOT NULL,
+    [IsEnabled] bit NOT NULL,
+    [StopProcessing] bit NOT NULL,
+    [ConditionJson] nvarchar(max) NOT NULL,
+    [ActionJson] nvarchar(max) NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_Rules] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Rules_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 13:36:14.294 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [WalletAccounts] (
+    [id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [Balance] int NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [RowVersion] rowversion NULL,
+    CONSTRAINT [PK_WalletAccounts] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_WalletAccounts_LoyaltyUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [LoyaltyUsers] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_WalletAccounts_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 13:36:14.295 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyCards_CardNumber] ON [LoyaltyCards] ([CardNumber]);
+2025-10-14 13:36:14.297 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyCards_UserId] ON [LoyaltyCards] ([UserId]) WHERE [IsActive] = 1;
+2025-10-14 13:36:14.298 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyUsers_Email] ON [LoyaltyUsers] ([Email]);
+2025-10-14 13:36:14.299 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Merchants_Name] ON [Merchants] ([Name]);
+2025-10-14 13:36:14.300 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_MerchantId] ON [PointsLedger] ([MerchantId]);
+2025-10-14 13:36:14.301 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_MerchantId1] ON [PointsLedger] ([MerchantId1]);
+2025-10-14 13:36:14.302 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_ProgramId] ON [PointsLedger] ([ProgramId]);
+2025-10-14 13:36:14.303 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_UserId_CreatedAt] ON [PointsLedger] ([UserId], [CreatedAt]);
+2025-10-14 13:36:14.304 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_UserId_ProgramId] ON [PointsLedger] ([UserId], [ProgramId]);
+2025-10-14 13:36:14.305 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_PointsLedger_UserId_ProgramId_ReferenceId] ON [PointsLedger] ([UserId], [ProgramId], [ReferenceId]) WHERE [ReferenceId] IS NOT NULL;
+2025-10-14 13:36:14.306 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Programs_MerchantId] ON [Programs] ([MerchantId]);
+2025-10-14 13:36:14.308 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Rules_ProgramId_Priority] ON [Rules] ([ProgramId], [Priority]);
+2025-10-14 13:36:14.309 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_WalletAccounts_ProgramId] ON [WalletAccounts] ([ProgramId]);
+2025-10-14 13:36:14.310 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_WalletAccounts_UserId_ProgramId] ON [WalletAccounts] ([UserId], [ProgramId]);
+2025-10-14 13:36:14.311 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20251014103441_Wallet-Network-Init', N'8.0.10');
+2025-10-14 14:21:55.118 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 14:21:55.182 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 14:21:55.318 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 14:21:55.320 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 14:26:20.176 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 14:26:20.236 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 14:26:20.371 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 14:26:20.374 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 14:53:25.180 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 14:53:25.238 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 14:53:25.367 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 14:53:25.370 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 14:53:50.270 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 14:53:50.332 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 14:53:50.666 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 14:53:50.669 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 14:53:50.954 +03:00 [INF] Executed DbCommand (238ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+CREATE DATABASE [LoyaltySystem];
+2025-10-14 14:53:51.037 +03:00 [INF] Executed DbCommand (80ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+IF SERVERPROPERTY('EngineEdition') <> 5
+BEGIN
+    ALTER DATABASE [LoyaltySystem] SET READ_COMMITTED_SNAPSHOT ON;
+END;
+2025-10-14 14:53:51.055 +03:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-10-14 14:53:51.117 +03:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [__EFMigrationsHistory] (
+    [MigrationId] nvarchar(150) NOT NULL,
+    [ProductVersion] nvarchar(32) NOT NULL,
+    CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+);
+2025-10-14 14:53:51.118 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-10-14 14:53:51.133 +03:00 [INF] Executed DbCommand (13ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-10-14 14:53:51.138 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-10-14 14:53:51.151 +03:00 [INF] Applying migration '20251014115325_Wallet-Network-Init'.
+2025-10-14 14:53:51.199 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [LoyaltyCards] (
+    [Id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [CardNumber] nvarchar(450) NOT NULL,
+    [IsActive] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_LoyaltyCards] PRIMARY KEY ([Id])
+);
+2025-10-14 14:53:51.202 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [LoyaltyUsers] (
+    [Id] uniqueidentifier NOT NULL,
+    [Email] nvarchar(450) NOT NULL,
+    [PasswordHash] nvarchar(max) NOT NULL,
+    [Role] nvarchar(max) NOT NULL,
+    [Tier] nvarchar(max) NOT NULL,
+    [Points] int NOT NULL,
+    [MerchantId] uniqueidentifier NULL,
+    [FullName] nvarchar(max) NULL,
+    [DateOfBirth] datetime2 NULL,
+    CONSTRAINT [PK_LoyaltyUsers] PRIMARY KEY ([Id])
+);
+2025-10-14 14:53:51.205 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Merchants] (
+    [Id] uniqueidentifier NOT NULL,
+    [Name] nvarchar(160) NOT NULL,
+    [ContactEmail] nvarchar(200) NOT NULL,
+    [AcceptsNetwork] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [IsActive] bit NOT NULL,
+    CONSTRAINT [PK_Merchants] PRIMARY KEY ([Id])
+);
+2025-10-14 14:53:51.208 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Programs] (
+    [Id] uniqueidentifier NOT NULL,
+    [Name] nvarchar(120) NOT NULL,
+    [Currency] nvarchar(8) NOT NULL,
+    [MerchantId] uniqueidentifier NOT NULL,
+    [PointsPerCurrency] decimal(18,2) NOT NULL,
+    [IsNetwork] bit NOT NULL,
+    [IsActive] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_Programs] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Programs_Merchants_MerchantId] FOREIGN KEY ([MerchantId]) REFERENCES [Merchants] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 14:53:51.211 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [PointsLedger] (
+    [Id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [MerchantId] uniqueidentifier NULL,
+    [MerchantId1] uniqueidentifier NULL,
+    [Type] nvarchar(max) NOT NULL,
+    [Amount] int NOT NULL,
+    [ReferenceId] nvarchar(450) NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_PointsLedger] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_PointsLedger_Merchants_MerchantId] FOREIGN KEY ([MerchantId]) REFERENCES [Merchants] ([Id]),
+    CONSTRAINT [FK_PointsLedger_Merchants_MerchantId1] FOREIGN KEY ([MerchantId1]) REFERENCES [Merchants] ([Id]),
+    CONSTRAINT [FK_PointsLedger_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 14:53:51.214 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Rules] (
+    [Id] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [Name] nvarchar(120) NOT NULL,
+    [Priority] int NOT NULL,
+    [IsEnabled] bit NOT NULL,
+    [StopProcessing] bit NOT NULL,
+    [ConditionJson] nvarchar(max) NOT NULL,
+    [ActionJson] nvarchar(max) NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_Rules] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Rules_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 14:53:51.217 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [WalletAccounts] (
+    [id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [Balance] int NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [RowVersion] rowversion NULL,
+    CONSTRAINT [PK_WalletAccounts] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_WalletAccounts_LoyaltyUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [LoyaltyUsers] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_WalletAccounts_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 14:53:51.219 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyCards_CardNumber] ON [LoyaltyCards] ([CardNumber]);
+2025-10-14 14:53:51.220 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyCards_UserId] ON [LoyaltyCards] ([UserId]) WHERE [IsActive] = 1;
+2025-10-14 14:53:51.222 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyUsers_Email] ON [LoyaltyUsers] ([Email]);
+2025-10-14 14:53:51.223 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Merchants_Name] ON [Merchants] ([Name]);
+2025-10-14 14:53:51.224 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_MerchantId] ON [PointsLedger] ([MerchantId]);
+2025-10-14 14:53:51.226 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_MerchantId1] ON [PointsLedger] ([MerchantId1]);
+2025-10-14 14:53:51.227 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_ProgramId] ON [PointsLedger] ([ProgramId]);
+2025-10-14 14:53:51.229 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_UserId_CreatedAt] ON [PointsLedger] ([UserId], [CreatedAt]);
+2025-10-14 14:53:51.230 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_UserId_ProgramId] ON [PointsLedger] ([UserId], [ProgramId]);
+2025-10-14 14:53:51.232 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_PointsLedger_UserId_ProgramId_ReferenceId] ON [PointsLedger] ([UserId], [ProgramId], [ReferenceId]) WHERE [ReferenceId] IS NOT NULL;
+2025-10-14 14:53:51.233 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Programs_MerchantId] ON [Programs] ([MerchantId]);
+2025-10-14 14:53:51.235 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Rules_ProgramId_Priority] ON [Rules] ([ProgramId], [Priority]);
+2025-10-14 14:53:51.236 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_WalletAccounts_ProgramId] ON [WalletAccounts] ([ProgramId]);
+2025-10-14 14:53:51.237 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_WalletAccounts_UserId_ProgramId] ON [WalletAccounts] ([UserId], [ProgramId]);
+2025-10-14 14:53:51.239 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20251014115325_Wallet-Network-Init', N'8.0.10');
+2025-10-14 15:19:57.640 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 15:19:57.711 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 15:19:57.878 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 15:19:57.880 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 15:20:57.332 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 15:20:57.397 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 15:20:57.872 +03:00 [WRN] The foreign key property 'PointsLedger.MerchantId1' was created in shadow state because a conflicting property with the simple name 'MerchantId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+2025-10-14 15:20:57.875 +03:00 [WRN] No store type was specified for the decimal property 'PointsPerCurrency' on entity type 'LoyaltyProgram'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-10-14 15:20:58.295 +03:00 [INF] Executed DbCommand (356ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+CREATE DATABASE [LoyaltySystem];
+2025-10-14 15:20:58.391 +03:00 [INF] Executed DbCommand (92ms) [Parameters=[], CommandType='"Text"', CommandTimeout='60']
+IF SERVERPROPERTY('EngineEdition') <> 5
+BEGIN
+    ALTER DATABASE [LoyaltySystem] SET READ_COMMITTED_SNAPSHOT ON;
+END;
+2025-10-14 15:20:58.415 +03:00 [INF] Executed DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-10-14 15:20:58.485 +03:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [__EFMigrationsHistory] (
+    [MigrationId] nvarchar(150) NOT NULL,
+    [ProductVersion] nvarchar(32) NOT NULL,
+    CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+);
+2025-10-14 15:20:58.486 +03:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-10-14 15:20:58.506 +03:00 [INF] Executed DbCommand (16ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-10-14 15:20:58.511 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-10-14 15:20:58.527 +03:00 [INF] Applying migration '20251014121958_Wallet-Network-Init'.
+2025-10-14 15:20:58.584 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [LoyaltyCards] (
+    [Id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [CardNumber] nvarchar(450) NOT NULL,
+    [IsActive] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_LoyaltyCards] PRIMARY KEY ([Id])
+);
+2025-10-14 15:20:58.586 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [LoyaltyUsers] (
+    [Id] uniqueidentifier NOT NULL,
+    [Email] nvarchar(450) NOT NULL,
+    [PasswordHash] nvarchar(max) NOT NULL,
+    [Role] nvarchar(max) NOT NULL,
+    [Tier] nvarchar(max) NOT NULL,
+    [Points] int NOT NULL,
+    [MerchantId] uniqueidentifier NULL,
+    [FullName] nvarchar(max) NULL,
+    [DateOfBirth] datetime2 NULL,
+    CONSTRAINT [PK_LoyaltyUsers] PRIMARY KEY ([Id])
+);
+2025-10-14 15:20:58.589 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Merchants] (
+    [Id] uniqueidentifier NOT NULL,
+    [Name] nvarchar(160) NOT NULL,
+    [ContactEmail] nvarchar(200) NOT NULL,
+    [AcceptsNetwork] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [IsActive] bit NOT NULL,
+    CONSTRAINT [PK_Merchants] PRIMARY KEY ([Id])
+);
+2025-10-14 15:20:58.591 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Programs] (
+    [Id] uniqueidentifier NOT NULL,
+    [Name] nvarchar(120) NOT NULL,
+    [Currency] nvarchar(8) NOT NULL,
+    [MerchantId] uniqueidentifier NOT NULL,
+    [PointsPerCurrency] decimal(18,2) NOT NULL,
+    [IsNetwork] bit NOT NULL,
+    [IsActive] bit NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_Programs] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Programs_Merchants_MerchantId] FOREIGN KEY ([MerchantId]) REFERENCES [Merchants] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 15:20:58.594 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [PointsLedger] (
+    [Id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [MerchantId] uniqueidentifier NULL,
+    [MerchantId1] uniqueidentifier NULL,
+    [Type] nvarchar(max) NOT NULL,
+    [Amount] int NOT NULL,
+    [ReferenceId] nvarchar(450) NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_PointsLedger] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_PointsLedger_Merchants_MerchantId] FOREIGN KEY ([MerchantId]) REFERENCES [Merchants] ([Id]),
+    CONSTRAINT [FK_PointsLedger_Merchants_MerchantId1] FOREIGN KEY ([MerchantId1]) REFERENCES [Merchants] ([Id]),
+    CONSTRAINT [FK_PointsLedger_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 15:20:58.596 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [Rules] (
+    [Id] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [Name] nvarchar(120) NOT NULL,
+    [Priority] int NOT NULL,
+    [IsEnabled] bit NOT NULL,
+    [StopProcessing] bit NOT NULL,
+    [ConditionJson] nvarchar(max) NOT NULL,
+    [ActionJson] nvarchar(max) NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    CONSTRAINT [PK_Rules] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Rules_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 15:20:58.599 +03:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [WalletAccounts] (
+    [id] uniqueidentifier NOT NULL,
+    [UserId] uniqueidentifier NOT NULL,
+    [ProgramId] uniqueidentifier NOT NULL,
+    [Balance] int NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [RowVersion] rowversion NULL,
+    CONSTRAINT [PK_WalletAccounts] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_WalletAccounts_LoyaltyUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [LoyaltyUsers] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_WalletAccounts_Programs_ProgramId] FOREIGN KEY ([ProgramId]) REFERENCES [Programs] ([Id]) ON DELETE CASCADE
+);
+2025-10-14 15:20:58.600 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyCards_CardNumber] ON [LoyaltyCards] ([CardNumber]);
+2025-10-14 15:20:58.601 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyCards_UserId] ON [LoyaltyCards] ([UserId]) WHERE [IsActive] = 1;
+2025-10-14 15:20:58.603 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_LoyaltyUsers_Email] ON [LoyaltyUsers] ([Email]);
+2025-10-14 15:20:58.604 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Merchants_Name] ON [Merchants] ([Name]);
+2025-10-14 15:20:58.605 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_MerchantId] ON [PointsLedger] ([MerchantId]);
+2025-10-14 15:20:58.606 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_MerchantId1] ON [PointsLedger] ([MerchantId1]);
+2025-10-14 15:20:58.607 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_ProgramId] ON [PointsLedger] ([ProgramId]);
+2025-10-14 15:20:58.608 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_UserId_CreatedAt] ON [PointsLedger] ([UserId], [CreatedAt]);
+2025-10-14 15:20:58.609 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_PointsLedger_UserId_ProgramId] ON [PointsLedger] ([UserId], [ProgramId]);
+2025-10-14 15:20:58.610 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_PointsLedger_UserId_ProgramId_ReferenceId] ON [PointsLedger] ([UserId], [ProgramId], [ReferenceId]) WHERE [ReferenceId] IS NOT NULL;
+2025-10-14 15:20:58.611 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Programs_MerchantId] ON [Programs] ([MerchantId]);
+2025-10-14 15:20:58.613 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_Rules_ProgramId_Priority] ON [Rules] ([ProgramId], [Priority]);
+2025-10-14 15:20:58.614 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE INDEX [IX_WalletAccounts_ProgramId] ON [WalletAccounts] ([ProgramId]);
+2025-10-14 15:20:58.615 +03:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE UNIQUE INDEX [IX_WalletAccounts_UserId_ProgramId] ON [WalletAccounts] ([UserId], [ProgramId]);
+2025-10-14 15:20:58.617 +03:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20251014121958_Wallet-Network-Init', N'8.0.10');

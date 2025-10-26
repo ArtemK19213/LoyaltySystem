@@ -1,0 +1,297 @@
+:root {
+    --bg1: #0b1020;
+    --bg2: #0e1426;
+    --ink: #eaf2ff;
+    --muted: #9fb2ca;
+    --line: rgba(255,255,255,.10);
+    --glass: rgba(255,255,255,.05);
+    /* единый градиент на всём сайте */
+    --g1: #67ddff;
+    --g2: #b48bff;
+}
+
+* {
+    box-sizing: border-box
+}
+
+html, body {
+    height: 100%
+}
+
+body {
+    margin: 0;
+    color: var(--ink);
+    font: 500 16px/1.55 Inter,system-ui,Segoe UI,Roboto,Arial;
+    background: radial-gradient(1200px 800px at 80% -10%, rgba(99,102,241,.15), transparent 60%), radial-gradient(900px 700px at -10% 30%, rgba(56,189,248,.10), transparent 50%), linear-gradient(180deg,var(--bg1),var(--bg2));
+}
+
+a {
+    color: inherit;
+    text-decoration: none
+}
+
+.container {
+    width: min(1180px,92vw);
+    margin: 0 auto
+}
+
+/* top bar */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    backdrop-filter: blur(16px);
+    background: linear-gradient(180deg,rgba(9,13,24,.85),rgba(9,13,24,.35));
+    border-bottom: 1px solid var(--line)
+}
+
+.bar {
+    height: 70px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px
+}
+
+.brand {
+    font: 900 20px/1 Inter;
+    letter-spacing: .2px;
+    background: linear-gradient(135deg,var(--g1),var(--g2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent
+}
+
+.nav {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap
+}
+
+.tab {
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    color: #e3ecffb3;
+    transition: .18s
+}
+
+    .tab:hover {
+        background: rgba(255,255,255,.09);
+        transform: translateY(-1px)
+    }
+
+    .tab.active {
+        color: #07121d;
+        background: linear-gradient(135deg,var(--g1),var(--g2))
+    }
+
+.actions {
+    display: flex;
+    gap: 10px
+}
+
+/* поверхности */
+.hero {
+    padding: 34px 0 18px 0
+}
+
+h1 {
+    font-size: 40px;
+    margin: .2em 0
+}
+
+h2 {
+    font-size: 28px;
+    margin: .2em 0
+}
+
+h3 {
+    font-size: 18px;
+    margin: .2em 0
+}
+
+.small {
+    font-size: 13px;
+    color: var(--muted)
+}
+
+.surface {
+    padding: 26px;
+    border-radius: 22px;
+    background: linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));
+    border: 1px solid var(--line);
+    backdrop-filter: blur(10px);
+    overflow: visible
+}
+
+.grid {
+    display: grid;
+    gap: 18px
+}
+
+    .grid.two {
+        grid-template-columns: 1fr 1fr
+    }
+
+    .grid.three {
+        grid-template-columns: repeat(3,1fr)
+    }
+
+    .grid.four {
+        grid-template-columns: repeat(4,1fr)
+    }
+
+@media(max-width:980px) {
+    .grid.two, .grid.three, .grid.four {
+        grid-template-columns: 1fr
+    }
+}
+
+/* поля */
+label {
+    display: block
+}
+
+    label > span {
+        display: block;
+        margin: 0 0 .35rem .2rem;
+        color: var(--muted);
+        font-size: .9rem
+    }
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(10,14,25,.72);
+    color: var(--ink)
+}
+
+textarea {
+    min-height: 86px
+}
+
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(104,227,255,.2)
+    }
+
+.btn {
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.06);
+    color: var(--ink);
+    cursor: pointer;
+    transition: .18s
+}
+
+    .btn:hover {
+        transform: translateY(-1px);
+        background: rgba(255,255,255,.1)
+    }
+
+    .btn.primary {
+        border: none;
+        color: #07121d;
+        background: linear-gradient(135deg,var(--g1),var(--g2))
+    }
+
+    .btn.ghost {
+        background: transparent;
+        border-color: var(--line)
+    }
+
+/* вкладки формы программ */
+.subtabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 8px 0 2px;
+    position: relative;
+    z-index: 2
+}
+
+.subtab {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.05);
+    cursor: pointer;
+    color: var(--ink);
+    user-select: none
+}
+
+    .subtab.active {
+        color: #07121d;
+        border-color: transparent;
+        background: linear-gradient(135deg,var(--g1),var(--g2))
+    }
+
+.tabcontent {
+    display: none;
+    margin-top: 8px
+}
+
+    .tabcontent.active {
+        display: block
+    }
+
+/* таблица/карточки */
+.tbl {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px
+}
+
+    .tbl th {
+        font-size: 12px;
+        color: #c9d6ec;
+        text-align: left;
+        padding: 0 8px
+    }
+
+    .tbl td {
+        padding: 12px 10px;
+        background: rgba(255,255,255,.04);
+        border: 1px solid var(--line);
+        border-radius: 12px
+    }
+
+/* тосты */
+#toast {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    display: grid;
+    gap: 8px;
+    z-index: 50
+}
+
+.toast {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: linear-gradient(135deg,#34d399,#10b981);
+    color: #051019
+}
+
+    .toast.err {
+        background: linear-gradient(135deg,#fb7185,#ef4444)
+    }
+
+/* визуал карты */
+.card-visual {
+    height: 160px;
+    border-radius: 16px;
+    background: linear-gradient(135deg,rgba(104,227,255,.25),rgba(180,139,255,.25));
+    display: flex;
+    align-items: end;
+    padding: 16px
+}
+
+    .card-visual .num {
+        font: 600 18px/1.2 ui-monospace,Consolas
+    }
