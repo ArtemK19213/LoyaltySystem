@@ -5,24 +5,30 @@ namespace LoyaltySystem.API.Models.Entities;
 public class MemberCard
 {
     public int Id { get; set; }
-    public int OrgId { get; set; }
+
+    // Организация-владелец программы
+    public int OrganizationId { get; set; }
+
+    // Программа, в рамках которой выдана карта
     public int ProgramId { get; set; }
-    public int ClientId { get; set; } // LoyaltyUser.Id (Client role)
-
     public LoyaltyProgram? Program { get; set; }
-    public LoyaltyUser? Client { get; set; }
 
-    [Required, MaxLength(40)]
-    public string PublicNumber { get; set; } = default!; // human-readable number (ORG-PRG-SEQ-CHK)
+    // Клиент (для клиента — аккаунт Client), может быть null (анонимная карта)
+    public int? UserId { get; set; }
 
+    // Читаемый номер карты (уникален в пределах организации)
+    [Required, MaxLength(32)]
+    public string Number { get; set; } = default!;
+
+    // Токен для QR (храним hash/ulid)
     [Required, MaxLength(64)]
-    public string QrSecret { get; set; } = default!; // base64 token for QR
+    public string QToken { get; set; } = default!;
 
-    [MaxLength(16)]
-    public string Status { get; set; } = "Active"; // Active | Blocked | Closed
+    public CardStatus Status { get; set; } = CardStatus.Active;
 
-    [MaxLength(40)]
-    public string? Tier { get; set; } // for Discount
+    // Текущий баланс
+    public decimal Balance { get; set; } = 0m;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime IssuedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? LastActivityAt { get; set; }
 }

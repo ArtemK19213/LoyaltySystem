@@ -7,89 +7,148 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LoyaltySystem.API.Services.Implementations;
 
-public class LoyaltyService(AppDbContext db) : ILoyaltyService
+public class LoyaltyService : ILoyaltyService
 {
-    private readonly AppDbContext _db = db;
+    private readonly AppDbContext _db;
+    public LoyaltyService(AppDbContext db) => _db = db;
 
-    // ===== Programs =====
-    public async Task<int> CreateProgramAsync(int orgId, CreateProgramRequest req, int performedByUserId, CancellationToken ct)
+    // ===================== Programs =====================
+
+    // Создать программу (минимально необходимые поля)
+    public async Task<int> CreateProgramAsync(
+        int orgId,
+        CreateProgramRequest req,
+        int performedByUserId,
+        CancellationToken ct)
     {
         var p = new LoyaltyProgram
         {
-            OrgId = orgId,
-            Name = req.Name.Trim(),
-            ProgramType = req.ProgramType,
-            PointsPerCurrency = req.PointsPerCurrency,
-            RoundingMode = req.RoundingMode,
-            MinOrderTotal = req.MinOrderTotal,
-            MaxPointsPerOrder = req.MaxPointsPerOrder,
-            DailyEarnLimit = req.DailyEarnLimit,
-            RedeemStep = req.RedeemStep,
-            ExpireMonths = req.ExpireMonths,
-            BaseDiscountPercent = req.BaseDiscountPercent,
-            ThemeColorStart = req.ThemeColorStart,
-            ThemeColorEnd = req.ThemeColorEnd,
-            CardPrefix = string.IsNullOrWhiteSpace(req.CardPrefix) ? "CARD" : req.CardPrefix.Trim().ToUpperInvariant(),
-            IsActive = true
+            OrganizationId = orgId,
+            Name = (req.Name ?? "Без названия").Trim(),
+
+            // Ниже — поля, которые ТОЧНО существуют в новой модели.
+            // Если в твоём CreateProgramRequest есть похожие поля – маппим,
+            // если нет — остаются значения по умолчанию из конструктора модели.
+
+            Type = ProgramType.Bonus,            // по умолчанию бонусная
+            PointsPer100 = req.PointsPer100 ?? 5m,       // баллов за 100 ₽
+            MinAmountToAccrue = req.MinAmountToAccrue ?? 0m,  // минимальный чек
+            Rounding = req.Rounding ?? RoundingMode.Nearest,
+            AccrualDelayDays = req.AccrualDelayDays ?? 0,
+            AccrueOnDiscounted = req.AccrueOnDiscounted ?? false,
+            PriceBase = req.PriceBase ?? PriceBase.WithVat,
+
+            // Списание
+            PointRate = req.PointRate ?? 1m,          // 1 балл = 1 ₽
+            MinRedeem = req.MinRedeem ?? 0m,
+            RedeemStep = req.RedeemStep ?? 1m,
+            MaxPercentRedeem = req.MaxPercentRedeem ?? 100,
+            CombineWithPromo = req.CombineWithPromo ?? true,
+            Require2FaOnRedeem = req.Require2FaOnRedeem ?? false,
+
+            // Лимиты
+            LimitPerCheck = req.LimitPerCheck,
+            LimitPerDay = req.LimitPerDay,
+            LimitPerMonth = req.LimitPerMonth,
+
+            // TTL
+            PointsTtlDays = req.PointsTtlDays ?? 365
         };
+
         _db.Programs.Add(p);
         await _db.SaveChangesAsync(ct);
         return p.Id;
     }
 
-    public async Task UpdateProgramAsync(int orgId, int programId, UpdateProgramRequest req, int performedByUserId, CancellationToken ct)
+    public async Task UpdateProgramAsync(
+        int orgId,
+        int programId,
+        UpdateProgramRequest req,
+        int performedByUserId,
+        CancellationToken ct)
     {
-        var p = await _db.Programs.FirstOrDefaultAsync(x => x.Id == programId && x.OrgId == orgId, ct)
-                ?? throw new InvalidOperationException("Программа не найдена");
-        p.Name = req.Name?.Trim() ?? p.Name;
-        p.ProgramType = req.ProgramType ?? p.ProgramType;
-        p.PointsPerCurrency = req.PointsPerCurrency ?? p.PointsPerCurrency;
-        p.RoundingMode = req.RoundingMode ?? p.RoundingMode;
-        p.MinOrderTotal = req.MinOrderTotal ?? p.MinOrderTotal;
-        p.MaxPointsPerOrder = req.MaxPointsPerOrder ?? p.MaxPointsPerOrder;
-        p.DailyEarnLimit = req.DailyEarnLimit ?? p.DailyEarnLimit;
-        p.RedeemStep = req.RedeemStep ?? p.RedeemStep;
-        p.ExpireMonths = req.ExpireMonths ?? p.ExpireMonths;
-        p.BaseDiscountPercent = req.BaseDiscountPercent ?? p.BaseDiscountPercent;
-        p.ThemeColorStart = req.ThemeColorStart ?? p.ThemeColorStart;
-        p.ThemeColorEnd = req.ThemeColorEnd ?? p.ThemeColorEnd;
-        p.CardPrefix = string.IsNullOrWhiteSpace(req.CardPrefix) ? p.CardPrefix : req.CardPrefix.Trim().ToUpperInvariant();
-        if (req.IsActive.HasValue) p.IsActive = req.IsActive.Value;
+        var p = await _db.Programs
+            .FirstOrDefaultAsync(x => x.Id == programId && x.OrganizationId == orgId, ct)
+            ?? throw new InvalidOperationException("Программа не найдена");
+
+        if (!string.IsNullOrWhiteSpace(req.Name)) p.Name = req.Name.Trim();
+
+        if (req.Type.HasValue) p.Type = req.Type.Value;
+        if (req.PointsPer100.HasValue) p.PointsPer100 = req.PointsPer100.Value;
+        if (req.MinAmountToAccrue.HasValue) p.MinAmountToAccrue = req.MinAmountToAccrue.Value;
+        if (req.Rounding.HasValue) p.Rounding = req.Rounding.Value;
+        if (req.AccrualDelayDays.HasValue) p.AccrualDelayDays = req.AccrualDelayDays.Value;
+        if (req.AccrueOnDiscounted.HasValue) p.AccrueOnDiscounted = req.AccrueOnDiscounted.Value;
+        if (req.PriceBase.HasValue) p.PriceBase = req.PriceBase.Value;
+
+        if (req.PointRate.HasValue) p.PointRate = req.PointRate.Value;
+        if (req.MinRedeem.HasValue) p.MinRedeem = req.MinRedeem.Value;
+        if (req.RedeemStep.HasValue) p.RedeemStep = req.RedeemStep.Value;
+        if (req.MaxPercentRedeem.HasValue) p.MaxPercentRedeem = req.MaxPercentRedeem.Value;
+        if (req.CombineWithPromo.HasValue) p.CombineWithPromo = req.CombineWithPromo.Value;
+        if (req.Require2FaOnRedeem.HasValue) p.Require2FaOnRedeem = req.Require2FaOnRedeem.Value;
+
+        if (req.LimitPerCheck.HasValue) p.LimitPerCheck = req.LimitPerCheck;
+        if (req.LimitPerDay.HasValue) p.LimitPerDay = req.LimitPerDay;
+        if (req.LimitPerMonth.HasValue) p.LimitPerMonth = req.LimitPerMonth;
+
+        if (req.PointsTtlDays.HasValue) p.PointsTtlDays = req.PointsTtlDays.Value;
+
         await _db.SaveChangesAsync(ct);
     }
 
     public async Task<IEnumerable<object>> ListProgramsAsync(int orgId, CancellationToken ct)
     {
-        var list = await _db.Programs.Where(x => x.OrgId == orgId).OrderByDescending(x => x.CreatedAt).ToListAsync(ct);
-        return list.Select(x => new {
-            x.Id, x.Name, x.ProgramType, x.IsActive, x.CreatedAt,
-            x.PointsPerCurrency, x.RedeemStep, x.ExpireMonths,
-            x.BaseDiscountPercent, x.CardPrefix
+        var list = await _db.Programs
+            .Where(x => x.OrganizationId == orgId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync(ct);
+
+        return list.Select(x => new
+        {
+            x.Id,
+            x.Name,
+            Type = x.Type.ToString(),
+            x.CreatedAt,
+            x.PointsPer100,
+            x.MinAmountToAccrue,
+            Rounding = x.Rounding.ToString(),
+            x.PointRate,
+            x.RedeemStep,
+            x.PointsTtlDays
         });
     }
 
-    // ===== Cards =====
-    public async Task<int> IssueCardAsync(int orgId, int programId, string clientEmail, int performedByUserId, CancellationToken ct)
+    // ===================== Cards =====================
+
+    // Выпуск карты: БЕЗ привязки к email (анонимно). Клиента можно привязать позже.
+    public async Task<int> IssueCardAsync(
+        int orgId,
+        int programId,
+        string clientEmail,                    // игнорируется
+        int performedByUserId,
+        CancellationToken ct)
     {
-        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == clientEmail.ToLower(), ct);
-        if (user is null) throw new InvalidOperationException("Клиент не найден");
+        var prg = await _db.Programs
+            .FirstOrDefaultAsync(p => p.Id == programId && p.OrganizationId == orgId, ct)
+            ?? throw new InvalidOperationException("Программа не найдена");
 
-        var prg = await _db.Programs.FirstOrDefaultAsync(p => p.Id == programId && p.OrgId == orgId && p.IsActive, ct)
-                  ?? throw new InvalidOperationException("Программа не найдена или неактивна");
+        var next = await NextCardCounterAsync(orgId, ct);
+        var publicNumber = MakeCardNumber(next);
+        var qrToken = NewQToken();
 
-        string orgCode = (prg.CardPrefix ?? "CARD").ToUpperInvariant();
-        string prgCode = prg.ProgramType.StartsWith("B", StringComparison.OrdinalIgnoreCase) ? "BON" : "DIS";
-
-        var (publicNumber, qrSecret) = await AllocateCardNumberAsync(orgId, programId, orgCode, prgCode, ct);
         var card = new MemberCard
         {
-            OrgId = orgId,
-            ProgramId = programId,
-            ClientId = user.Id,
-            PublicNumber = publicNumber,
-            QrSecret = qrSecret,
-            Status = "Active"
+            OrganizationId = orgId,
+            ProgramId = prg.Id,
+            UserId = null,
+            Number = publicNumber,
+            QToken = qrToken,
+            Status = CardStatus.Active,
+            Balance = 0m,
+            IssuedAt = DateTime.UtcNow
         };
+
         _db.Cards.Add(card);
         await _db.SaveChangesAsync(ct);
         return card.Id;
@@ -97,123 +156,218 @@ public class LoyaltyService(AppDbContext db) : ILoyaltyService
 
     public async Task<IEnumerable<object>> SearchCardsAsync(int orgId, string query, CancellationToken ct)
     {
-        query = query.Trim();
-        var q = _db.Cards.Include(c => c.Program).Include(c => c.Client)
-            .Where(c => c.OrgId == orgId && (c.PublicNumber.Contains(query) || c.QrSecret == query || c.Client!.Email.Contains(query)));
-        var list = await q.OrderByDescending(x => x.CreatedAt).Take(50).ToListAsync(ct);
-        return list.Select(c => new {
-            c.Id, c.PublicNumber, c.Status, Program = c.Program!.Name, c.CreatedAt,
-            Client = c.Client!.Email
+        query = (query ?? string.Empty).Trim();
+
+        var q = _db.Cards.Include(c => c.Program)
+            .Where(c => c.OrganizationId == orgId &&
+                        (c.Number.Contains(query) || c.QToken == query));
+
+        var list = await q.OrderByDescending(x => x.IssuedAt).Take(50).ToListAsync(ct);
+
+        return list.Select(c => new
+        {
+            c.Id,
+            Number = c.Number,
+            Status = c.Status.ToString(),
+            Program = c.Program!.Name,
+            c.IssuedAt
         });
     }
 
     public async Task<decimal> GetCardBalanceAsync(int cardId, CancellationToken ct)
     {
-        var total = await _db.Ledger.Where(l => l.CardId == cardId).SumAsync(x => x.Points, ct);
+        var total = await _db.Ledger
+            .Where(l => l.CardId == cardId)
+            .SumAsync(x => x.Amount, ct);
         return total;
     }
 
-    // ===== Operations =====
-    public async Task EarnAsync(int orgId, int performedByUserId, EarnRequest req, string? idemKey, CancellationToken ct)
+    // ===================== Operations =====================
+
+    public async Task EarnAsync(
+        int orgId,
+        int performedByUserId,
+        EarnRequest req,
+        string? idemKey,
+        CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(idemKey)) throw new InvalidOperationException("Idempotency-Key обязателен");
+        if (string.IsNullOrWhiteSpace(idemKey))
+            throw new InvalidOperationException("Idempotency-Key обязателен");
+
         var card = await FindCardAsync(orgId, req.CardQuery, ct);
         var prg = await _db.Programs.FirstAsync(p => p.Id == card.ProgramId, ct);
 
-        if (!string.Equals(prg.ProgramType, "Bonus", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("Начисление баллов возможно только для бонусной программы");
+        if (prg.Type != ProgramType.Bonus)
+            throw new InvalidOperationException("Начисление баллов доступно только в бонусной программе.");
 
-        if (prg.MinOrderTotal.HasValue && req.OrderAmount < prg.MinOrderTotal.Value)
-            throw new InvalidOperationException("Сумма заказа ниже минимума для начисления");
+        if (prg.MinAmountToAccrue > 0 && req.OrderAmount < prg.MinAmountToAccrue)
+            throw new InvalidOperationException("Сумма заказа ниже минимума для начисления.");
 
-        var raw = (prg.PointsPerCurrency ?? 0m) * req.OrderAmount;
-        var points = RoundPoints(raw, prg.RoundingMode ?? "Nearest");
+        var rawPoints = (req.OrderAmount / 100m) * prg.PointsPer100;
+        var points = ApplyRounding(rawPoints, prg.Rounding);
 
-        if (prg.MaxPointsPerOrder.HasValue) points = Math.Min(points, prg.MaxPointsPerOrder.Value);
-
-        var exists = await _db.Ledger.AnyAsync(l => l.OrgId == orgId && l.IdempotencyKey == idemKey, ct);
+        // идемпотентность по (orgId + key)
+        var exists = await _db.Ledger.AnyAsync(l =>
+            l.OrganizationId == orgId && l.IdempotencyKey == idemKey, ct);
         if (exists) return;
+
+        // текущий баланс
+        var balanceBefore = await _db.Ledger.Where(l => l.CardId == card.Id).SumAsync(x => x.Amount, ct);
+        var balanceAfter = balanceBefore + points;
 
         _db.Ledger.Add(new LedgerEntry
         {
-            OrgId = orgId,
-            ProgramId = card.ProgramId,
+            OrganizationId = orgId,
             CardId = card.Id,
-            Type = "Earn",
-            Points = points,
-            Source = string.IsNullOrWhiteSpace(req.OrderId) ? "Manual" : "Order",
-            OrderId = req.OrderId,
+            Kind = LedgerKind.Accrual,
+            Amount = points,
+            BalanceAfter = balanceAfter,
+            OrderNumber = string.IsNullOrWhiteSpace(req.OrderId) ? null : req.OrderId.Trim(),
             IdempotencyKey = idemKey!,
-            PerformedByUserId = performedByUserId
+            PerformedByUserId = performedByUserId,
+            OccurredAt = DateTime.UtcNow
         });
+
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task RedeemAsync(int orgId, int performedByUserId, RedeemRequest req, string? idemKey, CancellationToken ct)
+    public async Task RedeemAsync(
+        int orgId,
+        int performedByUserId,
+        RedeemRequest req,
+        string? idemKey,
+        CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(idemKey)) throw new InvalidOperationException("Idempotency-Key обязателен");
+        if (string.IsNullOrWhiteSpace(idemKey))
+            throw new InvalidOperationException("Idempotency-Key обязателен");
+
         var card = await FindCardAsync(orgId, req.CardQuery, ct);
         var prg = await _db.Programs.FirstAsync(p => p.Id == card.ProgramId, ct);
 
-        if (!string.Equals(prg.ProgramType, "Bonus", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("Списание баллов доступно только в бонусной программе");
+        if (prg.Type != ProgramType.Bonus)
+            throw new InvalidOperationException("Списание доступно только в бонусной программе.");
 
-        var step = prg.RedeemStep ?? 1;
-        if (req.Points <= 0 || (req.Points % step) != 0)
-            throw new InvalidOperationException($"Баллы для списания должны быть кратны {step}");
+        if (req.Points <= 0)
+            throw new InvalidOperationException("Неверное количество баллов для списания.");
 
-        var balance = await _db.Ledger.Where(l => l.CardId == card.Id).SumAsync(x => x.Points, ct);
-        if (balance < req.Points) throw new InvalidOperationException("Недостаточно баллов");
+        if (prg.RedeemStep > 0 && (req.Points % prg.RedeemStep) != 0)
+            throw new InvalidOperationException($"Баллы для списания должны быть кратны шагу {prg.RedeemStep}.");
 
-        var exists = await _db.Ledger.AnyAsync(l => l.OrgId == orgId && l.IdempotencyKey == idemKey, ct);
+        var balance = await _db.Ledger.Where(l => l.CardId == card.Id).SumAsync(x => x.Amount, ct);
+        if (balance < req.Points) throw new InvalidOperationException("Недостаточно баллов.");
+
+        var exists = await _db.Ledger.AnyAsync(l =>
+            l.OrganizationId == orgId && l.IdempotencyKey == idemKey, ct);
         if (exists) return;
+
+        var balanceAfter = balance - req.Points;
 
         _db.Ledger.Add(new LedgerEntry
         {
-            OrgId = orgId,
-            ProgramId = card.ProgramId,
+            OrganizationId = orgId,
             CardId = card.Id,
-            Type = "Redeem",
-            Points = -req.Points,
-            Source = "Manual",
+            Kind = LedgerKind.Redemption,
+            Amount = -req.Points,
+            BalanceAfter = balanceAfter,
+            OrderNumber = string.IsNullOrWhiteSpace(req.OrderId) ? null : req.OrderId.Trim(),
             IdempotencyKey = idemKey!,
-            PerformedByUserId = performedByUserId
+            PerformedByUserId = performedByUserId,
+            OccurredAt = DateTime.UtcNow
         });
+
         await _db.SaveChangesAsync(ct);
     }
 
-    public async Task<IEnumerable<object>> GetLedgerAsync(int orgId, string? cardQuery, DateTime? from, DateTime? to, CancellationToken ct)
+    public async Task<IEnumerable<object>> GetLedgerAsync(
+        int orgId, string? cardQuery, DateTime? from, DateTime? to, CancellationToken ct)
     {
-        var q = _db.Ledger.Include(l => l.Card).Where(l => l.OrgId == orgId);
+        var q = _db.Ledger.Include(l => l.Card).Where(l => l.OrganizationId == orgId);
+
         if (!string.IsNullOrWhiteSpace(cardQuery))
         {
-            var ids = await _db.Cards.Where(c => c.OrgId == orgId && (c.PublicNumber.Contains(cardQuery) || c.QrSecret == cardQuery)).Select(c => c.Id).ToListAsync(ct);
+            var ids = await _db.Cards
+                .Where(c => c.OrganizationId == orgId &&
+                            (c.Number.Contains(cardQuery!) || c.QToken == cardQuery))
+                .Select(c => c.Id)
+                .ToListAsync(ct);
+
             if (ids.Count == 0) return Enumerable.Empty<object>();
             q = q.Where(l => ids.Contains(l.CardId));
         }
-        if (from.HasValue) q = q.Where(l => l.CreatedAt >= from.Value);
-        if (to.HasValue) q = q.Where(l => l.CreatedAt <= to.Value);
 
-        var list = await q.OrderByDescending(l => l.CreatedAt).Take(200).ToListAsync(ct);
-        return list.Select(l => new {
-            l.Id, l.Type, l.Points, l.Source, l.OrderId, l.IdempotencyKey, l.CreatedAt,
-            Card = l.Card!.PublicNumber
+        if (from.HasValue) q = q.Where(l => l.OccurredAt >= from.Value);
+        if (to.HasValue) q = q.Where(l => l.OccurredAt <= to.Value);
+
+        var list = await q.OrderByDescending(l => l.OccurredAt).Take(200).ToListAsync(ct);
+
+        return list.Select(l => new
+        {
+            l.Id,
+            Kind = l.Kind.ToString(),
+            l.Amount,
+            l.BalanceAfter,
+            l.OrderNumber,
+            l.IdempotencyKey,
+            l.OccurredAt,
+            Card = l.Card!.Number
         });
     }
 
-    // ===== helpers =====
+    // ===================== helpers =====================
 
-    private static decimal RoundPoints(decimal value, string mode)
-    {
-        return (mode?.ToLowerInvariant()) switch
+    private static decimal ApplyRounding(decimal value, RoundingMode mode) =>
+        mode switch
         {
-            "down" => Math.Floor(value),
-            "up" => Math.Ceiling(value),
+            RoundingMode.Down => Math.Floor(value),
+            RoundingMode.Up => Math.Ceiling(value),
             _ => Math.Round(value, 0, MidpointRounding.AwayFromZero)
         };
+
+    private async Task<MemberCard> FindCardAsync(int orgId, string cardQuery, CancellationToken ct)
+    {
+        cardQuery = (cardQuery ?? string.Empty).Trim();
+
+        var card = await _db.Cards.FirstOrDefaultAsync(c =>
+            c.OrganizationId == orgId && (c.Number == cardQuery || c.QToken == cardQuery), ct);
+
+        return card ?? throw new InvalidOperationException("Карта не найдена");
     }
 
-    public static int LuhnCheckDigit(long number)
+    // -------- генерация номеров карт ----------
+
+    private async Task<long> NextCardCounterAsync(int orgId, CancellationToken ct)
+    {
+        var c = await _db.CardNumberCounters.FirstOrDefaultAsync(x => x.OrganizationId == orgId, ct);
+        if (c == null)
+        {
+            c = new CardNumberCounter { OrganizationId = orgId, LastValue = 1 };
+            _db.CardNumberCounters.Add(c);
+        }
+        else
+        {
+            c.LastValue += 1;
+            c.UpdatedAt = DateTime.UtcNow;
+        }
+        await _db.SaveChangesAsync(ct);
+        return c.LastValue;
+    }
+
+    private static string MakeCardNumber(long seq)
+    {
+        // 12-значная основа + Luhn
+        var baseNum = 100000000000L + seq; // просто чтобы было «красиво длинно»
+        var chk = LuhnCheckDigit(baseNum);
+        return $"{baseNum}{chk}";
+    }
+
+    private static string NewQToken()
+    {
+        // короткий URL-safe токен
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(24))
+            .Replace("+", "").Replace("/", "").Replace("=", "");
+    }
+
+    private static int LuhnCheckDigit(long number)
     {
         var s = number.ToString();
         int sum = 0; bool alt = false;
@@ -224,38 +378,5 @@ public class LoyaltyService(AppDbContext db) : ILoyaltyService
             sum += n; alt = !alt;
         }
         return (10 - (sum % 10)) % 10;
-    }
-
-    private async Task<(string publicNumber, string qrSecret)> AllocateCardNumberAsync(
-        int orgId, int programId, string orgCode, string prgCode, CancellationToken ct)
-    {
-        using var tx = await _db.Database.BeginTransactionAsync(ct);
-
-        var counter = await _db.CardNumberCounters.FindAsync(new object?[] { orgId, programId }, ct);
-        if (counter is null)
-        {
-            counter = new CardNumberCounter { OrgId = orgId, ProgramId = programId, NextSeq = 1 };
-            _db.CardNumberCounters.Add(counter);
-            await _db.SaveChangesAsync(ct);
-        }
-
-        var seq = counter.NextSeq;
-        counter.NextSeq++;
-        await _db.SaveChangesAsync(ct);
-
-        int chk = LuhnCheckDigit(seq);
-        string publicNumber = $"{orgCode}-{prgCode}-{seq:000000}-{chk}";
-        string qrSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-
-        await tx.CommitAsync(ct);
-        return (publicNumber, qrSecret);
-    }
-
-    private async Task<MemberCard> FindCardAsync(int orgId, string cardQuery, CancellationToken ct)
-    {
-        cardQuery = cardQuery.Trim();
-        var card = await _db.Cards.FirstOrDefaultAsync(c =>
-            c.OrgId == orgId && (c.PublicNumber == cardQuery || c.QrSecret == cardQuery), ct);
-        return card ?? throw new InvalidOperationException("Карта не найдена");
     }
 }

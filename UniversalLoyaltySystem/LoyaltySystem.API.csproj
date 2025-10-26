@@ -26,6 +26,5 @@
 
   <ItemGroup>
     <Folder Include="Logs\" />
-    <Folder Include="LoyaltySystem.API\Infrastructure\Authorization\" />
   </ItemGroup>
 </Project>

@@ -5,35 +5,71 @@ namespace LoyaltySystem.API.Models.Entities;
 public class LoyaltyProgram
 {
     public int Id { get; set; }
-    public int OrgId { get; set; }
-    public Organization? Org { get; set; }
 
-    [Required, MaxLength(100)]
+    // Владелец программы (организация партнёра)
+    public int OrganizationId { get; set; }
+
+    // Тип: бонусы/скидка/кэшбэк/подписка
+    public ProgramType Type { get; set; } = ProgramType.Bonus;
+
+    [Required, MaxLength(120)]
     public string Name { get; set; } = default!;
 
-    /// <summary>Bonus | Discount</summary>
-    [Required, MaxLength(20)]
-    public string ProgramType { get; set; } = "Bonus";
+    // ---- Начисление ----
+    // Сколько баллов за каждые 100 рублей
+    public decimal PointsPer100 { get; set; } = 5m;
 
-    // Bonus settings
-    public decimal? PointsPerCurrency { get; set; }
-    [MaxLength(12)] public string? RoundingMode { get; set; } // Down | Nearest | Up
-    public decimal? MinOrderTotal { get; set; }
-    public decimal? MaxPointsPerOrder { get; set; }
-    public decimal? DailyEarnLimit { get; set; }
-    public int? RedeemStep { get; set; }
-    public int? ExpireMonths { get; set; }
+    // Минимальный чек для начисления
+    public decimal MinAmountToAccrue { get; set; } = 0m;
 
-    // Discount settings
-    public decimal? BaseDiscountPercent { get; set; } // if null -> ProgramTier table is used
+    public RoundingMode Rounding { get; set; } = RoundingMode.Down;
 
-    // UI/Issuance
-    [MaxLength(6)] public string? ThemeColorStart { get; set; }
-    [MaxLength(6)] public string? ThemeColorEnd { get; set; }
-    [MaxLength(8)] public string? CardPrefix { get; set; } // e.g. ORG
+    // Учитывать ли чек с уценёнными товарами при начислении
+    public bool AccrueOnDiscounted { get; set; } = false;
 
-    public bool IsActive { get; set; } = true;
+    // База расчёта (с НДС / без НДС)
+    public PriceBase PriceBase { get; set; } = PriceBase.WithVat;
+
+    // Welcome-бонусы при регистрации карты в этой программе
+    public int WelcomeBonus { get; set; } = 0;
+
+    // ДР-множитель (во сколько раз умножать начисление в окно ДР)
+    public decimal BirthdayMultiplier { get; set; } = 1m;
+
+    // Окно ДР, ± дней от даты рождения
+    public int BirthdayWindowDays { get; set; } = 0;
+
+    // Отложенная активация (через N дней после покупки)
+    public int AccrualDelayDays { get; set; } = 0;
+
+    // Если оплата баллами: как поступать с начислением
+    // true = учитывать сумму, оплаченную баллами; false = не учитывать
+    public bool AccrueOnPointsPaidPart { get; set; } = false;
+
+    // ---- Списание ----
+    // 1 балл = сколько рублей
+    public decimal PointRate { get; set; } = 1m;
+
+    public decimal MinRedeem { get; set; } = 0m;
+    public decimal RedeemStep { get; set; } = 1m;
+
+    // Максимальный % чека, который можно оплатить баллами
+    public int MaxPercentRedeem { get; set; } = 100;
+
+    // Можно ли совмещать с промокодом/акцией
+    public bool CombineWithPromo { get; set; } = true;
+
+    // Требовать 2FA подтверждение при списании (например, кодом из ЛК)
+    public bool Require2FaOnRedeem { get; set; } = false;
+
+    // ---- Лимиты ----
+    public decimal? LimitPerCheck { get; set; }
+    public decimal? LimitPerDay { get; set; }
+    public decimal? LimitPerMonth { get; set; }
+
+    // ---- Срок жизни баллов ----
+    // Скользящий срок (в днях) — 0 = бессрочно
+    public int PointsTtlDays { get; set; } = 365;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-    public ICollection<ProgramTier> Tiers { get; set; } = new List<ProgramTier>();
 }

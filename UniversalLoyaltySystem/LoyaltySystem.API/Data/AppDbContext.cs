@@ -5,43 +5,54 @@ namespace LoyaltySystem.API.Data;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public DbSet<LoyaltyUser> Users => Set<LoyaltyUser>();
-    public DbSet<Organization> Orgs => Set<Organization>();
-    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<LoyaltyProgram> Programs => Set<LoyaltyProgram>();
+    public DbSet<MemberCard> Cards => Set<MemberCard>();
+    public DbSet<LedgerEntry> Ledger => Set<LedgerEntry>();
+    public DbSet<CardNumberCounter> CardNumberCounters => Set<CardNumberCounter>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
 
-        b.Entity<LoyaltyUser>(e =>
+        b.Entity<LoyaltyProgram>(e =>
         {
             e.HasKey(x => x.Id);
-            e.HasIndex(x => x.Email).IsUnique();
-            e.Property(x => x.Email).HasMaxLength(120).IsRequired();
-            e.Property(x => x.PasswordHash).IsRequired();
-            e.Property(x => x.Role).HasMaxLength(20).IsRequired();
-            e.HasOne(x => x.Organization)
-             .WithMany()
-             .HasForeignKey(x => x.OrganizationId)
-             .OnDelete(DeleteBehavior.SetNull);
+            e.HasIndex(x => new { x.OrganizationId, x.Name }).IsUnique();
+            e.Property(x => x.Type).HasConversion<string>().HasMaxLength(24);
+            e.Property(x => x.Rounding).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.PriceBase).HasConversion<string>().HasMaxLength(16);
         });
 
-        b.Entity<Organization>(e =>
+        b.Entity<MemberCard>(e =>
         {
             e.HasKey(x => x.Id);
-            e.Property(x => x.Name).HasMaxLength(120).IsRequired();
-            e.Property(x => x.ShortDescription).HasMaxLength(300);
+            e.HasIndex(x => new { x.OrganizationId, x.Number }).IsUnique();
+            e.HasIndex(x => x.QToken).IsUnique();
+
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
+
+            e.HasOne(x => x.Program)
+                .WithMany()
+                .HasForeignKey(x => x.ProgramId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
-        b.Entity<RefreshToken>(e =>
+        b.Entity<LedgerEntry>(e =>
         {
             e.HasKey(x => x.Id);
-            e.HasIndex(x => new { x.UserId, x.TokenHash }).IsUnique();
-            e.Property(x => x.TokenHash).HasMaxLength(128).IsRequired();
-            e.HasOne(x => x.User)
-             .WithMany(u => u.RefreshTokens)
-             .HasForeignKey(x => x.UserId)
-             .OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => new { x.OrganizationId, x.IdempotencyKey }).IsUnique();
+            e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(16);
+
+            e.HasOne(x => x.Card)
+                .WithMany()
+                .HasForeignKey(x => x.CardId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<CardNumberCounter>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.OrganizationId).IsUnique();
         });
     }
 }

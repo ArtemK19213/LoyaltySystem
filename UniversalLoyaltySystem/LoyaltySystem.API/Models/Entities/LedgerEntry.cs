@@ -5,25 +5,33 @@ namespace LoyaltySystem.API.Models.Entities;
 public class LedgerEntry
 {
     public int Id { get; set; }
-    public int OrgId { get; set; }
-    public int ProgramId { get; set; }
+
+    public int OrganizationId { get; set; }
+
     public int CardId { get; set; }
     public MemberCard? Card { get; set; }
 
-    [MaxLength(12)]
-    public string Type { get; set; } = "Earn"; // Earn | Redeem | Expire | Adjust
+    // Начисление / списание / сгорание / возврат / корректировка
+    public LedgerKind Kind { get; set; }
 
-    public decimal Points { get; set; } // positive (earn/adjust) or negative (redeem/expire)
+    // Сколько баллов (+ начисление / - списание)
+    public decimal Amount { get; set; }
 
-    [MaxLength(12)]
-    public string Source { get; set; } = "Manual"; // Order | Manual
+    // Баланс после операции (для быстрого отчёта)
+    public decimal BalanceAfter { get; set; }
 
-    [MaxLength(64)]
-    public string? OrderId { get; set; }
+    // Номер заказа/чека
+    [MaxLength(64)] public string? OrderNumber { get; set; }
 
-    [Required, MaxLength(64)]
-    public string IdempotencyKey { get; set; } = default!;
+    // Идемпотентность: (OrgId, IdempotencyKey) — уникально
+    [Required, MaxLength(64)] public string IdempotencyKey { get; set; } = default!;
 
-    public int PerformedByUserId { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    // Произвёл операцию (партнёр) — UserId в роли Partner/Admin
+    public int? PerformedByUserId { get; set; }
+
+    // Произошло в UTC
+    public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
+
+    // Произвольные метаданные (JSON)
+    public string? MetaJson { get; set; }
 }
